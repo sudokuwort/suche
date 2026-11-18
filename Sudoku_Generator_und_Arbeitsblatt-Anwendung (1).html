@@ -1,0 +1,3615 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="artifact-type" content="tool">
+  <meta name="design-style" content="haven">
+  <title>Rätsel-Atelier — Sudoku &amp; Wortsuche</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&family=Hanken+Grotesk:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@1.43.0/dist/umd/lucide.min.js"></script>
+  <style>
+    :root {
+      color-scheme: light;
+
+      /* Page and surfaces (Haven Light) */
+      --background: #f5f6f5;
+      --surface-container-low: #ffffff;
+      --surface-container: #e3ebe2;
+      --surface-container-high: #dbe2dd;
+
+      /* Ink */
+      --on-surface: #23272a;
+      --on-surface-variant: #5c6468;
+
+      /* Rules */
+      --outline: #c9d0cc;
+      --outline-variant: #dde2df;
+
+      /* Accents */
+      --primary: #3c5a6e;
+      --on-primary: #ffffff;
+      --primary-container: #e2e9ee;
+      --on-primary-container: #2a4152;
+      --secondary: #4f6b53;
+      --tertiary: #5f7c63;
+      --error: #a63d32;
+      --on-error: #ffffff;
+      --error-container: #f8ebe9;
+
+      /* Data series */
+      --data-1: #3c5a6e;
+      --data-2: #5f7c63;
+      --data-3: #a8694a;
+      --data-4: #8a7a68;
+      --data-context: #c3cac6;
+
+      /* Semantic */
+      --positive: #3f6a49;
+      --positive-container: #e3ebe2;
+      --warning: #8f6327;
+      --warning-container: #f5eee3;
+
+      /* Focus ring */
+      --focus: #3c5a6e;
+
+      /* Modal & print surface tokens */
+      --backdrop: rgba(28, 32, 35, 0.56);
+      --sheet-paper: #ffffff;
+      --sheet-ink: #1f2326;
+      --sheet-muted: #555e63;
+      --sheet-rule: #cfd6d2;
+      --sheet-accent: #3c5a6e;
+
+      /* Fonts */
+      --font-headline: 'Outfit', sans-serif;
+      --font-body: 'Hanken Grotesk', sans-serif;
+      --font-label: 'Outfit', sans-serif;
+
+      /* Type scale (Focused Tool) */
+      --display-size: clamp(1.75rem, 1.4rem + 1.2vw, 2.25rem);
+      --headline-size: clamp(1.25rem, 1.1rem + 0.5vw, 1.5rem);
+      --subhead-size: clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem);
+      --body-size: clamp(0.9375rem, 0.9rem + 0.15vw, 1rem);
+      --label-size: 0.75rem;
+
+      /* Shape */
+      --rounded: 0.375rem;
+      --rounded-lg: 0.5rem;
+      --rounded-full: 9999px;
+
+      /* Spacing scale */
+      --space-xs: 0.25rem;
+      --space-sm: 0.5rem;
+      --space-md: 1rem;
+      --space-lg: 1.5rem;
+      --space-xl: 2.5rem;
+      --space-2xl: 4rem;
+      --space-3xl: 6rem;
+
+      /* Motion */
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+      --dur-micro: 120ms;
+      --dur-short: 220ms;
+      --dur-long: 420ms;
+
+      /* Style effects (Haven: no shadows) */
+      --hairline: 1px solid var(--outline-variant);
+      --hairline-control: 1px solid var(--outline);
+      --elevation: none;
+    }
+
+    [data-theme="dark"] {
+      color-scheme: dark;
+
+      --background: #1c2023;
+      --surface-container-low: #24292d;
+      --surface-container: #2b332e;
+      --surface-container-high: #30373c;
+
+      --on-surface: #e6e9e7;
+      --on-surface-variant: #a9b2b6;
+
+      --outline: #485258;
+      --outline-variant: #343b40;
+
+      --primary: #9db8cc;
+      --on-primary: #1c2023;
+      --primary-container: #2b3944;
+      --on-primary-container: #dbe6ee;
+      --secondary: #a6c2aa;
+      --tertiary: #7ea083;
+      --error: #e07c72;
+      --on-error: #1c2023;
+      --error-container: #3d2725;
+
+      --positive: #8fc199;
+      --positive-container: #26362b;
+      --warning: #dfb372;
+      --warning-container: #383024;
+      --focus: #9db8cc;
+      --backdrop: rgba(10, 12, 14, 0.75);
+    }
+
+    /* Base reset */
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body {
+      overflow-x: clip;
+      margin: 0;
+      padding: 0;
+      background-color: var(--background);
+      color: var(--on-surface);
+      font-family: var(--font-body);
+      font-size: var(--body-size);
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+      transition: background-color var(--dur-short) var(--ease-in-out), color var(--dur-short) var(--ease-in-out);
+    }
+    header { position: static !important; }
+    button, input, select, textarea {
+      font-family: inherit;
+      font-size: inherit;
+      color: inherit;
+    }
+
+    :focus-visible {
+      outline: 2px solid var(--focus);
+      outline-offset: 2px;
+    }
+
+    .app-shell {
+      max-width: 1260px;
+      margin: 0 auto;
+      padding: var(--space-md) var(--space-lg) var(--space-2xl);
+    }
+
+    /* Header */
+    .site-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: var(--space-md);
+      padding-bottom: var(--space-lg);
+      border-bottom: var(--hairline);
+      margin-bottom: var(--space-lg);
+    }
+    .brand-block {
+      max-width: 44rem;
+    }
+    .headline {
+      font-family: var(--font-headline);
+      font-weight: 300;
+      font-size: var(--display-size);
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+      margin: 0;
+      color: var(--on-surface);
+    }
+    .headline strong {
+      font-weight: 600;
+    }
+    .caption-sage {
+      font-family: var(--font-body);
+      font-weight: 500;
+      color: var(--secondary);
+      margin: var(--space-xs) 0 0;
+      font-size: var(--body-size);
+    }
+
+    .header-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--space-sm);
+    }
+
+    /* Mode Navigation */
+    .mode-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-md);
+      margin-bottom: var(--space-lg);
+    }
+    .mode-tabs {
+      display: inline-flex;
+      background: var(--surface-container-low);
+      border: var(--hairline);
+      border-radius: var(--rounded-lg);
+      padding: var(--space-xs);
+      gap: var(--space-xs);
+    }
+    .mode-tab {
+      min-height: 44px;
+      padding: var(--space-xs) var(--space-md);
+      border: none;
+      border-radius: var(--rounded);
+      background: transparent;
+      color: var(--on-surface-variant);
+      font-family: var(--font-label);
+      font-weight: 500;
+      font-size: var(--body-size);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-sm);
+      transition: background-color var(--dur-micro) var(--ease-out), color var(--dur-micro) var(--ease-out);
+    }
+    .mode-tab:hover {
+      background: var(--surface-container-high);
+      color: var(--on-surface);
+    }
+    .mode-tab.is-active {
+      background: var(--primary);
+      color: var(--on-primary);
+    }
+
+    /* Page Grid */
+    .page-grid {
+      display: grid;
+      grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
+      gap: var(--space-lg);
+      align-items: start;
+    }
+    .page-grid * { min-width: 0; }
+
+    /* Haven Hairline Panels */
+    .panel {
+      background: var(--surface-container-low);
+      border: var(--hairline);
+      border-radius: var(--rounded-lg);
+      box-shadow: var(--elevation);
+      padding: var(--space-lg);
+    }
+
+    .panel-title {
+      font-family: var(--font-headline);
+      font-weight: 400;
+      font-size: var(--headline-size);
+      letter-spacing: -0.015em;
+      line-height: 1.15;
+      margin: 0 0 var(--space-md);
+      color: var(--on-surface);
+    }
+    .panel-title strong { font-weight: 600; }
+
+    .label {
+      display: block;
+      font-family: var(--font-label);
+      font-size: var(--label-size);
+      font-weight: 500;
+      letter-spacing: 0.015em;
+      text-transform: none;
+      color: var(--on-surface-variant);
+      margin-bottom: var(--space-xs);
+    }
+
+    .control-group {
+      margin-bottom: var(--space-md);
+    }
+    .control-group:last-child {
+      margin-bottom: 0;
+    }
+
+    .divider {
+      border: 0;
+      border-top: var(--hairline);
+      margin: var(--space-md) 0;
+    }
+
+    /* Inputs & Buttons */
+    .input-field,
+    .textarea-field {
+      width: 100%;
+      background: var(--surface-container-low);
+      border: var(--hairline-control);
+      border-radius: var(--rounded);
+      padding: var(--space-sm) var(--space-md);
+      color: var(--on-surface);
+      transition: border-color var(--dur-micro) var(--ease-out), background-color var(--dur-micro) var(--ease-out);
+    }
+    .input-field { min-height: 44px; }
+    .textarea-field {
+      min-height: 160px;
+      resize: vertical;
+      line-height: 1.5;
+    }
+    .input-field:focus,
+    .textarea-field:focus {
+      border-color: var(--primary);
+    }
+
+    .btn {
+      min-height: 44px;
+      padding: var(--space-sm) var(--space-md);
+      border-radius: var(--rounded);
+      border: var(--hairline-control);
+      background: transparent;
+      color: var(--on-surface);
+      font-family: var(--font-label);
+      font-weight: 500;
+      font-size: var(--body-size);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-sm);
+      text-decoration: none;
+      transition: background-color var(--dur-micro) var(--ease-out), color var(--dur-micro) var(--ease-out), border-color var(--dur-micro) var(--ease-out);
+    }
+    .btn:hover:not(:disabled) {
+      background: var(--surface-container-high);
+    }
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .btn-primary {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: var(--on-primary);
+    }
+    .btn-primary:hover:not(:disabled) {
+      background: var(--on-primary-container);
+      border-color: var(--on-primary-container);
+      color: var(--on-primary);
+    }
+    .btn-sage {
+      background: var(--surface-container);
+      border-color: var(--surface-container);
+      color: var(--secondary);
+    }
+    .btn-sage:hover:not(:disabled) {
+      background: var(--surface-container-high);
+    }
+    .btn-danger {
+      border-color: var(--error);
+      color: var(--error);
+    }
+    .btn-danger:hover:not(:disabled) {
+      background: var(--error-container);
+    }
+    .btn-sm {
+      min-height: 36px;
+      padding: var(--space-xs) var(--space-sm);
+      font-size: 0.875rem;
+    }
+    .btn-full {
+      width: 100%;
+    }
+
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-sm);
+      align-items: end;
+    }
+
+    /* Choice chips */
+    .chip-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-xs);
+    }
+    .chip-btn {
+      min-height: 38px;
+      padding: var(--space-xs) var(--space-sm);
+      border-radius: var(--rounded);
+      border: var(--hairline-control);
+      background: transparent;
+      color: var(--on-surface);
+      font-family: var(--font-label);
+      font-weight: 500;
+      font-size: 0.875rem;
+      font-variant-numeric: tabular-nums;
+      cursor: pointer;
+      transition: background-color var(--dur-micro) var(--ease-out), border-color var(--dur-micro) var(--ease-out);
+    }
+    .chip-btn:hover {
+      background: var(--surface-container-high);
+    }
+    .chip-btn.is-selected {
+      background: var(--primary-container);
+      border-color: var(--primary);
+      color: var(--on-primary-container);
+    }
+
+    .segmented-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-xs);
+    }
+
+    /* Checkboxes */
+    .check-list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-xs);
+    }
+    .check-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      min-height: 44px;
+      padding: var(--space-xs) var(--space-sm);
+      border: var(--hairline);
+      border-radius: var(--rounded);
+      cursor: pointer;
+      font-size: 0.9rem;
+      user-select: none;
+    }
+    .check-item:hover {
+      background: var(--surface-container-high);
+    }
+    .check-item input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--primary);
+      margin: 0;
+      flex-shrink: 0;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-xs);
+      background: var(--surface-container);
+      color: var(--secondary);
+      font-family: var(--font-label);
+      font-weight: 500;
+      font-size: var(--label-size);
+      padding: 0.2rem 0.65rem;
+      border-radius: var(--rounded-full);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .inline-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-sm);
+    }
+
+    /* Dual slider/number */
+    .slider-pair {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 82px;
+      gap: var(--space-sm);
+      align-items: center;
+    }
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--primary);
+      min-height: 36px;
+      cursor: pointer;
+    }
+
+    /* Status / Feedback Banner */
+    .status-banner {
+      padding: var(--space-sm) var(--space-md);
+      border-radius: var(--rounded);
+      border: var(--hairline);
+      background: var(--surface-container);
+      color: var(--on-surface);
+      font-size: 0.925rem;
+      margin-bottom: var(--space-md);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-sm);
+      flex-wrap: wrap;
+    }
+    .status-banner.is-success {
+      background: var(--positive-container);
+      border-color: var(--positive);
+      color: var(--on-surface);
+    }
+    .status-banner.is-error {
+      background: var(--error-container);
+      border-color: var(--error);
+      color: var(--on-surface);
+    }
+    .status-banner.is-warning {
+      background: var(--warning-container);
+      border-color: var(--warning);
+      color: var(--on-surface);
+    }
+
+    /* Play Panel Top Bar */
+    .play-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-md);
+      padding-bottom: var(--space-md);
+      border-bottom: var(--hairline);
+      margin-bottom: var(--space-md);
+    }
+    .play-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    /* Interactive Board Container */
+    .board-viewport {
+      width: 100%;
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+      border: var(--hairline);
+      border-radius: var(--rounded);
+      background: var(--background);
+      padding: var(--space-md);
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 280px;
+    }
+
+    /* Sudoku Interactive Grid */
+    .sudoku-grid {
+      display: grid;
+      border: 2px solid var(--on-surface);
+      background: var(--surface-container-low);
+      user-select: none;
+      flex-shrink: 0;
+    }
+    .sudoku-cell {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-right: 1px solid var(--outline-variant);
+      border-bottom: 1px solid var(--outline-variant);
+      font-family: var(--font-label);
+      font-variant-numeric: tabular-nums;
+      cursor: pointer;
+      position: relative;
+      transition: background-color var(--dur-micro) var(--ease-out);
+      background: var(--surface-container-low);
+      color: var(--primary);
+      font-weight: 500;
+    }
+    .sudoku-cell.is-given {
+      color: var(--on-surface);
+      font-weight: 600;
+      cursor: default;
+    }
+    .sudoku-cell.is-peer {
+      background: var(--surface-container-high);
+    }
+    .sudoku-cell.is-selected {
+      background: var(--primary-container);
+      outline: 2px solid var(--primary);
+      outline-offset: -2px;
+      z-index: 2;
+    }
+    .sudoku-cell.is-correct {
+      background: var(--positive-container);
+      color: var(--positive);
+    }
+    .sudoku-cell.is-wrong {
+      background: var(--error-container);
+      color: var(--error);
+    }
+    .sudoku-cell.is-solution-reveal {
+      color: var(--secondary);
+      font-weight: 500;
+    }
+    .sudoku-cell.border-right-thick {
+      border-right: 2px solid var(--on-surface);
+    }
+    .sudoku-cell.border-bottom-thick {
+      border-bottom: 2px solid var(--on-surface);
+    }
+    .sudoku-cell.border-right-none {
+      border-right: 0;
+    }
+    .sudoku-cell.border-bottom-none {
+      border-bottom: 0;
+    }
+
+    /* Sudoku Keypad */
+    .keypad-panel {
+      margin-top: var(--space-md);
+      padding-top: var(--space-md);
+      border-top: var(--hairline);
+    }
+    .keypad-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-xs);
+    }
+    .keypad-btn {
+      min-width: 44px;
+      min-height: 44px;
+      padding: 0 var(--space-sm);
+      border-radius: var(--rounded);
+      border: var(--hairline-control);
+      background: var(--surface-container-low);
+      color: var(--on-surface);
+      font-family: var(--font-label);
+      font-weight: 500;
+      font-variant-numeric: tabular-nums;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color var(--dur-micro) var(--ease-out);
+    }
+    .keypad-btn:hover {
+      background: var(--surface-container-high);
+    }
+
+    .zoom-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-sm);
+      margin-bottom: var(--space-sm);
+    }
+
+    /* Wortsuche Interactive Grid */
+    .ws-stage {
+      position: relative;
+      display: inline-block;
+      flex-shrink: 0;
+    }
+    .ws-overlay-svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+    .ws-grid {
+      display: grid;
+      position: relative;
+      z-index: 2;
+      border: 1.5px solid var(--on-surface);
+      user-select: none;
+      touch-action: manipulation;
+    }
+    .ws-cell {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-label);
+      font-weight: 500;
+      border-right: 1px solid var(--outline-variant);
+      border-bottom: 1px solid var(--outline-variant);
+      cursor: pointer;
+      color: var(--on-surface);
+      background: transparent;
+      transition: background-color var(--dur-micro) var(--ease-out);
+    }
+    .ws-cell.is-start {
+      background: var(--primary-container);
+      color: var(--on-primary-container);
+      outline: 2px solid var(--primary);
+      outline-offset: -2px;
+    }
+    .ws-cell.is-preview-select {
+      background: var(--surface-container-high);
+    }
+
+    .ws-word-bank {
+      margin-top: var(--space-md);
+      padding-top: var(--space-md);
+      border-top: var(--hairline);
+    }
+    .ws-word-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-xs);
+    }
+    .ws-word-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0.25rem 0.6rem;
+      border-radius: var(--rounded);
+      border: var(--hairline);
+      background: var(--background);
+      font-family: var(--font-label);
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+    .ws-word-pill.is-found {
+      text-decoration: line-through;
+      opacity: 0.65;
+      background: var(--positive-container);
+    }
+    .ws-color-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: var(--rounded-full);
+      flex-shrink: 0;
+    }
+
+    /* Empty State */
+    .empty-state {
+      text-align: left;
+      padding: var(--space-xl) var(--space-md);
+      max-width: 34rem;
+    }
+    .empty-state h3 {
+      font-family: var(--font-headline);
+      font-weight: 500;
+      margin: 0 0 var(--space-xs);
+      font-size: var(--subhead-size);
+    }
+    .empty-state p {
+      margin: 0;
+      color: var(--on-surface-variant);
+    }
+
+    /* Modals */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: var(--backdrop);
+      z-index: 100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: var(--space-md);
+    }
+    .modal-backdrop.is-open {
+      display: flex;
+    }
+    .dialog-card {
+      background: var(--surface-container-low);
+      border: var(--hairline);
+      border-radius: var(--rounded-lg);
+      max-width: 460px;
+      width: 100%;
+      padding: var(--space-lg);
+    }
+    .dialog-card h2 {
+      font-family: var(--font-headline);
+      font-weight: 500;
+      font-size: var(--headline-size);
+      margin: 0 0 var(--space-sm);
+    }
+    .dialog-card p {
+      margin: 0 0 var(--space-md);
+      color: var(--on-surface-variant);
+    }
+
+    /* Fullscreen Worksheet Preview Modal (Mobile-First Ultra-Slim Top Bar) */
+    .preview-modal {
+      position: fixed;
+      inset: 0;
+      background: var(--background);
+      z-index: 120;
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .preview-modal.is-open {
+      display: flex;
+    }
+    .preview-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-xs);
+      padding: 6px var(--space-sm);
+      background: var(--surface-container-low);
+      border-bottom: var(--hairline);
+      flex-shrink: 0;
+      flex-wrap: wrap;
+    }
+    .preview-topbar-group {
+      display: flex;
+      align-items: center;
+      gap: var(--space-xs);
+      flex-wrap: wrap;
+    }
+    .slim-btn {
+      min-height: 36px;
+      padding: 4px 10px;
+      border-radius: var(--rounded);
+      border: var(--hairline-control);
+      background: transparent;
+      color: var(--on-surface);
+      font-family: var(--font-label);
+      font-weight: 500;
+      font-size: 0.8125rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+    }
+    .slim-btn:hover { background: var(--surface-container-high); }
+    .slim-btn-primary {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: var(--on-primary);
+    }
+    .slim-btn-primary:hover {
+      background: var(--on-primary-container);
+      border-color: var(--on-primary-container);
+    }
+
+    /* Compact Settings Bar inside Preview */
+    .preview-settings-strip {
+      display: none;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: var(--space-sm);
+      padding: var(--space-sm) var(--space-md);
+      background: var(--surface-container-low);
+      border-bottom: var(--hairline);
+      flex-shrink: 0;
+      align-items: end;
+    }
+    .preview-settings-strip.is-open {
+      display: grid;
+    }
+    .slim-field-label {
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--font-label);
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--on-surface-variant);
+      margin-bottom: 2px;
+    }
+    .slim-input {
+      width: 100%;
+      min-height: 34px;
+      padding: 4px 8px;
+      border: var(--hairline-control);
+      border-radius: var(--rounded);
+      background: var(--surface-container-low);
+      color: var(--on-surface);
+      font-size: 0.85rem;
+    }
+
+    /* Preview Scroll Stage */
+    .preview-stage {
+      flex: 1 1 auto;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: var(--space-md);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-lg);
+      -webkit-overflow-scrolling: touch;
+    }
+    .sheet-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+    }
+    .sheet-caption {
+      font-family: var(--font-label);
+      font-size: 0.8125rem;
+      font-weight: 500;
+      color: var(--on-surface-variant);
+      margin-bottom: var(--space-xs);
+    }
+    .sheet-scale-box {
+      position: relative;
+      overflow: hidden;
+      border: var(--hairline);
+    }
+
+    /* Exact A4 Virtual Sheet (794px x 1123px at 96dpi) */
+    .sheet-page {
+      width: 794px;
+      height: 1123px;
+      background: var(--sheet-paper);
+      color: var(--sheet-ink);
+      transform-origin: top left;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      font-family: var(--font-body);
+    }
+    .sheet-inner {
+      flex: 1 1 auto;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      height: 100%;
+      overflow: hidden;
+    }
+    .sheet-kicker {
+      font-family: var(--font-label);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--sheet-accent);
+      margin-bottom: 2px;
+    }
+    .sheet-title {
+      font-family: var(--font-headline);
+      font-size: 22px;
+      font-weight: 600;
+      line-height: 1.15;
+      margin: 0;
+      color: var(--sheet-ink);
+    }
+    .sheet-subtitle {
+      font-size: 12px;
+      color: var(--sheet-muted);
+      margin: 3px 0 8px;
+    }
+    .sheet-meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      font-size: 12px;
+      padding: 6px 0;
+      border-top: 1px solid var(--sheet-rule);
+      border-bottom: 1px solid var(--sheet-rule);
+      margin-bottom: 8px;
+    }
+    .sheet-meta-field {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 6px;
+    }
+    .sheet-meta-value {
+      min-width: 140px;
+      border-bottom: 1px solid var(--sheet-rule);
+      padding-bottom: 1px;
+      font-weight: 500;
+    }
+    .sheet-instructions {
+      margin-bottom: 10px;
+      color: var(--sheet-ink);
+      line-height: 1.38;
+    }
+    .sheet-instructions h4 {
+      margin: 0 0 3px;
+      font-family: var(--font-headline);
+      font-weight: 600;
+      font-size: 1.05em;
+    }
+    .sheet-instructions ol {
+      margin: 0;
+      padding-left: 18px;
+    }
+    .sheet-instructions li {
+      margin-bottom: 1px;
+    }
+    .sheet-puzzle-area {
+      flex: 1 1 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      min-height: 0;
+    }
+    .sheet-footer {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: var(--sheet-muted);
+      border-top: 1px solid var(--sheet-rule);
+      padding-top: 5px;
+      margin-top: 6px;
+      flex-shrink: 0;
+    }
+
+    /* Worksheet Sudoku Table */
+    .ws-print-grid,
+    .sudoku-print-grid {
+      display: grid;
+      border: 2px solid var(--sheet-ink);
+      background: var(--sheet-paper);
+    }
+    .sudoku-print-cell {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-right: 1px solid var(--sheet-rule);
+      border-bottom: 1px solid var(--sheet-rule);
+      font-family: var(--font-label);
+      font-variant-numeric: tabular-nums;
+      color: var(--sheet-ink);
+    }
+    .sudoku-print-cell.is-given {
+      font-weight: 700;
+      color: var(--sheet-ink);
+    }
+    .sudoku-print-cell.is-sol {
+      font-weight: 400;
+      color: var(--sheet-accent);
+    }
+    .sudoku-print-cell.thick-r { border-right: 2px solid var(--sheet-ink); }
+    .sudoku-print-cell.thick-b { border-bottom: 2px solid var(--sheet-ink); }
+    .sudoku-print-cell.no-r { border-right: 0; }
+    .sudoku-print-cell.no-b { border-bottom: 0; }
+
+    /* Worksheet Wortsuche Table & Word Bank */
+    .ws-print-stage {
+      position: relative;
+      display: inline-block;
+    }
+    .ws-print-cell {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-right: 1px solid var(--sheet-rule);
+      border-bottom: 1px solid var(--sheet-rule);
+      font-family: var(--font-label);
+      font-weight: 500;
+      color: var(--sheet-ink);
+    }
+    .ws-print-wordbank {
+      width: 100%;
+      margin-top: 8px;
+      border-top: 1px solid var(--sheet-rule);
+      padding-top: 6px;
+      display: grid;
+      gap: 2px 10px;
+    }
+    .ws-print-worditem {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-family: var(--font-label);
+      font-weight: 500;
+      color: var(--sheet-ink);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .hidden { display: none !important; }
+
+    /* Responsive Breakpoints */
+    @media (max-width: 900px) {
+      .page-grid {
+        grid-template-columns: 1fr;
+      }
+      .preview-settings-strip {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 640px) {
+      .app-shell {
+        padding: var(--space-sm) var(--space-sm) var(--space-xl);
+      }
+      .panel {
+        padding: var(--space-md);
+      }
+      .check-list {
+        grid-template-columns: 1fr;
+      }
+      .preview-stage {
+        padding: var(--space-sm);
+      }
+      .preview-settings-strip {
+        grid-template-columns: 1fr 1fr;
+        padding: var(--space-xs) var(--space-sm);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+
+    /* Print Stylesheet */
+    @page {
+      size: A4 portrait;
+      margin: 0;
+    }
+    @media print {
+      html, body {
+        background: var(--sheet-paper) !important;
+        color: var(--sheet-ink) !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 210mm;
+      }
+      .app-shell,
+      .modal-backdrop,
+      .preview-topbar,
+      .preview-settings-strip,
+      .sheet-caption {
+        display: none !important;
+      }
+      .preview-modal {
+        position: static !important;
+        display: block !important;
+        background: var(--sheet-paper) !important;
+        overflow: visible !important;
+      }
+      .preview-stage {
+        display: block !important;
+        padding: 0 !important;
+        overflow: visible !important;
+      }
+      .sheet-wrapper {
+        display: block !important;
+        page-break-after: always;
+        break-after: page;
+      }
+      .sheet-wrapper:last-child {
+        page-break-after: auto;
+        break-after: auto;
+      }
+      .sheet-scale-box {
+        width: 210mm !important;
+        height: 297mm !important;
+        border: 0 !important;
+      }
+      .sheet-page {
+        transform: none !important;
+        width: 210mm !important;
+        height: 297mm !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-shell">
+    <header class="site-header">
+      <div class="brand-block">
+        <h1 class="headline">Rätsel-Atelier: <strong>Sudoku &amp; Wortsuche</strong></h1>
+        <p class="caption-sage">Eigene Rätsel direkt am Gerät lösen oder als druckfertige Arbeitsblätter mit separatem Lösungsblatt exportieren.</p>
+      </div>
+      <div class="header-actions">
+        <button type="button" class="btn" id="btn-theme-toggle" onclick="toggleTheme()" aria-label="Farbschema wechseln">
+          <i data-lucide="moon" aria-hidden="true" style="width:18px;height:18px;"></i>
+          <span id="theme-label">Dunkelmodus</span>
+        </button>
+        <button type="button" class="btn btn-primary" onclick="openPreviewModal()">
+          <i data-lucide="printer" aria-hidden="true" style="width:18px;height:18px;"></i>
+          <span>Arbeitsblatt &amp; Export</span>
+        </button>
+      </div>
+    </header>
+
+    <div class="mode-bar">
+      <nav class="mode-tabs" aria-label="Rätsel-Bereich wählen">
+        <button type="button" class="mode-tab is-active" id="tab-sudoku" onclick="switchMode('sudoku')">
+          <i data-lucide="grid-3x3" aria-hidden="true" style="width:18px;height:18px;"></i>
+          <span>Sudoku-Generator</span>
+        </button>
+        <button type="button" class="mode-tab" id="tab-wortsuche" onclick="switchMode('wortsuche')">
+          <i data-lucide="search" aria-hidden="true" style="width:18px;height:18px;"></i>
+          <span>Wortsuche</span>
+        </button>
+      </nav>
+      <span class="tag" id="header-status-tag">Bereit</span>
+    </div>
+
+    <main class="page-grid">
+      <!-- CONFIGURATION PANEL -->
+      <section class="panel" aria-label="Einstellungen">
+        <!-- SUDOKU CONFIG -->
+        <div id="config-sudoku">
+          <h2 class="panel-title"><strong>Sudoku</strong> konfigurieren</h2>
+
+          <div class="control-group">
+            <span class="label">Rastergröße-Vorauswahl (4×4 bis 55×55)</span>
+            <div class="chip-grid" id="sudoku-size-presets" style="margin-bottom: var(--space-sm);">
+              <button type="button" class="chip-btn" onclick="selectSudokuSize(4)">4×4</button>
+              <button type="button" class="chip-btn" onclick="selectSudokuSize(9)">9×9</button>
+              <button type="button" class="chip-btn" onclick="selectSudokuSize(16)">16×16</button>
+              <button type="button" class="chip-btn" onclick="selectSudokuSize(20)">20×20</button>
+              <button type="button" class="chip-btn" onclick="selectSudokuSize(25)">25×25</button>
+              <button type="button" class="chip-btn" onclick="selectSudokuSize(36)">36×36</button>
+              <button type="button" class="chip-btn" onclick="selectSudokuSize(40)">40×40</button>
+              <button type="button" class="chip-btn" onclick="selectSudokuSize(49)">49×49</button>
+              <button type="button" class="chip-btn" onclick="selectSudokuSize(55)">55×55</button>
+            </div>
+            <label class="label" for="sudoku-size-input">Eigene Rastergröße (4 bis 55)</label>
+            <div class="inline-row">
+              <input type="number" id="sudoku-size-input" class="input-field" min="4" max="55" value="9" oninput="onSudokuSizeInput(this.value)" style="max-width: 110px;">
+              <span class="tag" id="sudoku-subgrid-info">Unterblöcke: 3×3</span>
+            </div>
+            <p class="caption-sage" id="sudoku-prime-note" style="font-size: 0.85rem; display: none;"></p>
+          </div>
+
+          <hr class="divider">
+
+          <div class="control-group">
+            <span class="label">Schwierigkeitsgrad</span>
+            <div class="segmented-2" id="sudoku-diff-group">
+              <button type="button" class="chip-btn" data-diff="leicht" onclick="selectDifficulty('leicht')">Leicht</button>
+              <button type="button" class="chip-btn" data-diff="mittel" onclick="selectDifficulty('mittel')">Mittel</button>
+              <button type="button" class="chip-btn" data-diff="schwer" onclick="selectDifficulty('schwer')">Schwer</button>
+              <button type="button" class="chip-btn" data-diff="experte" onclick="selectDifficulty('experte')">Experte</button>
+            </div>
+            <p class="caption-sage" id="sudoku-diff-caption" style="font-size: 0.85rem;">~64 % vorgegebene Zahlen</p>
+          </div>
+
+          <hr class="divider">
+
+          <div class="btn-row">
+            <button type="button" class="btn btn-primary btn-full" onclick="requestSudokuGeneration()">
+              <i data-lucide="sparkles" aria-hidden="true" style="width:18px;height:18px;"></i>
+              <span>Neues Sudoku erstellen</span>
+            </button>
+            <button type="button" class="btn btn-sage btn-full" onclick="openPreviewModal()">
+              <i data-lucide="file-text" aria-hidden="true" style="width:18px;height:18px;"></i>
+              <span>Arbeitsblatt-Vorschau</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- WORTSUCHE CONFIG -->
+        <div id="config-wortsuche" class="hidden">
+          <h2 class="panel-title"><strong>Wortsuche</strong> konfigurieren</h2>
+
+          <div class="control-group">
+            <div class="inline-row" style="margin-bottom: var(--space-xs);">
+              <label class="label" for="ws-words-input" style="margin-bottom: 0;">Eigene Wörter (max. 150)</label>
+              <span class="tag" id="ws-word-count">0 / 150 Wörter</span>
+            </div>
+            <textarea id="ws-words-input" class="textarea-field" oninput="onWordsTextChange(this.value)" aria-describedby="ws-words-help"></textarea>
+            <div class="inline-row" style="margin-top: var(--space-xs);">
+              <span id="ws-words-help" style="font-size: 0.82rem; color: var(--on-surface-variant);">Ein Wort pro Zeile oder mit Komma trennen.</span>
+              <button type="button" class="btn btn-sm" id="btn-ws-clear" onclick="clearWordsList(this)">Liste leeren</button>
+            </div>
+          </div>
+
+          <hr class="divider">
+
+          <div class="control-group">
+            <div class="inline-row">
+              <label class="label" for="ws-size-slider" style="margin-bottom: 0;">Rastergröße</label>
+              <span class="tag" id="ws-size-badge">14 × 14</span>
+            </div>
+            <label class="check-item" style="margin: var(--space-xs) 0 var(--space-sm);">
+              <input type="checkbox" id="ws-autosize-check" checked onchange="toggleWsAutoSize(this.checked)">
+              <span>Größe automatisch an Wörter anpassen</span>
+            </label>
+            <div class="slider-pair" id="ws-manual-size-row">
+              <input type="range" id="ws-size-slider" min="10" max="40" value="14" oninput="syncWsSizeFromSlider(this.value)">
+              <input type="number" id="ws-size-number" class="input-field" min="10" max="40" value="14" oninput="syncWsSizeFromNumber(this.value)">
+            </div>
+          </div>
+
+          <hr class="divider">
+
+          <div class="control-group">
+            <span class="label">Richtungen</span>
+            <div class="check-list">
+              <label class="check-item">
+                <input type="checkbox" id="dir-horizontal" checked onchange="onWsOptionsChange()">
+                <span>Horizontal (→)</span>
+              </label>
+              <label class="check-item">
+                <input type="checkbox" id="dir-vertical" checked onchange="onWsOptionsChange()">
+                <span>Vertikal (↓)</span>
+              </label>
+              <label class="check-item">
+                <input type="checkbox" id="dir-diagonal" checked onchange="onWsOptionsChange()">
+                <span>Schräg (↘ ↗)</span>
+              </label>
+              <label class="check-item">
+                <input type="checkbox" id="dir-backward" onchange="onWsOptionsChange()">
+                <span>Rückwärts (← ↑)</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <span class="label">Umlaute (Ä, Ö, Ü)</span>
+            <div class="segmented-2">
+              <button type="button" class="chip-btn is-selected" id="umlaut-direct" onclick="setUmlautMode('direct')">Direkt (Ä, Ö, Ü)</button>
+              <button type="button" class="chip-btn" id="umlaut-replace" onclick="setUmlautMode('replace')">Ersetzen (AE, OE, UE)</button>
+            </div>
+          </div>
+
+          <hr class="divider">
+
+          <div class="btn-row">
+            <button type="button" class="btn btn-primary btn-full" onclick="generateWordSearch()">
+              <i data-lucide="sparkles" aria-hidden="true" style="width:18px;height:18px;"></i>
+              <span>Wortsuche generieren</span>
+            </button>
+            <button type="button" class="btn btn-sage btn-full" onclick="openPreviewModal()">
+              <i data-lucide="file-text" aria-hidden="true" style="width:18px;height:18px;"></i>
+              <span>Arbeitsblatt-Vorschau</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- INTERACTIVE PLAY PANEL -->
+      <section class="panel" aria-label="Spielfeld">
+        <div class="play-header">
+          <div class="play-meta">
+            <h2 class="panel-title" id="play-title" style="margin-bottom: 0;"><strong>9×9 Sudoku</strong> · Mittel</h2>
+            <span class="caption-sage" id="play-subtitle" style="margin-top: 2px; font-size: 0.9rem;">Klicke auf ein leeres Kästchen und wähle eine Zahl.</span>
+          </div>
+          <div class="btn-row">
+            <button type="button" class="btn btn-primary btn-sm" id="btn-check-live" onclick="checkCurrentPuzzle()">
+              <i data-lucide="check-circle-2" aria-hidden="true" style="width:16px;height:16px;"></i>
+              <span>Prüfen / Bestätigen</span>
+            </button>
+            <button type="button" class="btn btn-sm" id="btn-toggle-solution" onclick="toggleLiveSolution()">
+              <i data-lucide="eye" aria-hidden="true" style="width:16px;height:16px;"></i>
+              <span id="lbl-toggle-solution">Lösung anzeigen</span>
+            </button>
+            <button type="button" class="btn btn-sm" id="btn-reset-entries" onclick="resetLiveEntries()">
+              <i data-lucide="rotate-ccw" aria-hidden="true" style="width:16px;height:16px;"></i>
+              <span>Zurücksetzen</span>
+            </button>
+          </div>
+        </div>
+
+        <div id="live-feedback" class="status-banner hidden" role="status" aria-live="polite"></div>
+
+        <!-- Zoom control for large grids -->
+        <div class="zoom-bar" id="board-zoom-bar">
+          <span class="label" style="margin-bottom: 0;" id="board-zoom-label">Kästchengröße</span>
+          <div class="btn-row">
+            <button type="button" class="chip-btn" onclick="adjustBoardZoom(-4)" aria-label="Verkleinern">−</button>
+            <span class="tag" id="board-zoom-value">Auto</span>
+            <button type="button" class="chip-btn" onclick="adjustBoardZoom(4)" aria-label="Vergrößern">+</button>
+          </div>
+        </div>
+
+        <!-- SUDOKU BOARD -->
+        <div id="sudoku-play-area">
+          <div class="board-viewport" id="sudoku-viewport">
+            <div class="sudoku-grid" id="sudoku-grid" role="grid" aria-label="Sudoku-Spielfeld"></div>
+          </div>
+
+          <div class="keypad-panel" id="sudoku-keypad-panel">
+            <div class="inline-row" style="margin-bottom: var(--space-xs);">
+              <span class="label" style="margin-bottom: 0;" id="keypad-hint">Eingabefeld für ausgewähltes Kästchen</span>
+              <span class="tag" id="selected-cell-tag">Kein Feld gewählt</span>
+            </div>
+            <div class="keypad-grid" id="sudoku-keypad"></div>
+          </div>
+        </div>
+
+        <!-- WORTSUCHE BOARD -->
+        <div id="wortsuche-play-area" class="hidden">
+          <div id="ws-empty-state" class="empty-state">
+            <h3>Noch keine Wortsuche erstellt</h3>
+            <p>Gib links bis zu 150 eigene Wörter ein, wähle die gewünschten Richtungen und klicke auf „Wortsuche generieren“.</p>
+          </div>
+          <div id="ws-active-board" class="hidden">
+            <div class="board-viewport" id="ws-viewport">
+              <div class="ws-stage" id="ws-stage">
+                <svg class="ws-overlay-svg" id="ws-overlay-svg" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"></svg>
+                <div class="ws-grid" id="ws-grid" role="grid" aria-label="Wortsuche-Spielfeld"></div>
+              </div>
+            </div>
+            <div class="ws-word-bank">
+              <div class="inline-row" style="margin-bottom: var(--space-sm);">
+                <span class="label" style="margin-bottom: 0;">Gesuchte Wörter</span>
+                <span class="tag" id="ws-found-progress">0 / 0 gefunden</span>
+              </div>
+              <div class="ws-word-pills" id="ws-word-pills"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- LARGE SUDOKU (> 40x40) WARNING MODAL -->
+  <div class="modal-backdrop" id="size-warning-modal" role="dialog" aria-modal="true" aria-labelledby="warn-title">
+    <div class="dialog-card">
+      <h2 id="warn-title">Hinweis zu sehr großen Rastern (&gt; 40×40)</h2>
+      <p id="warn-desc">Bei einer Rastergröße über 40×40 (z. B. 55×55) werden die Kästchen und Zahlen sowohl auf dem Bildschirm als auch auf DIN-A4-Arbeitsblättern sehr klein dargestellt. Für den Druck empfiehlt sich bei Bedarf ein feiner Stift.</p>
+      <div class="btn-row" style="justify-content: flex-end;">
+        <button type="button" class="btn" onclick="cancelLargeSudoku()">Abbrechen</button>
+        <button type="button" class="btn btn-primary" onclick="confirmLargeSudoku()">Trotzdem erstellen</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- WORKSHEET PREVIEW & EXPORT MODAL -->
+  <div class="preview-modal" id="preview-modal" role="dialog" aria-modal="true" aria-label="Arbeitsblatt-Vorschau">
+    <div class="preview-topbar">
+      <div class="preview-topbar-group">
+        <button type="button" class="slim-btn slim-btn-primary" onclick="printWorksheet()">
+          <i data-lucide="printer" aria-hidden="true" style="width:15px;height:15px;"></i>
+          <span>Drucken / PDF</span>
+        </button>
+        <button type="button" class="slim-btn" onclick="downloadSheetPng(1)">
+          <i data-lucide="download" aria-hidden="true" style="width:15px;height:15px;"></i>
+          <span>Blatt 1 (PNG)</span>
+        </button>
+        <button type="button" class="slim-btn" onclick="downloadSheetPng(2)">
+          <i data-lucide="download" aria-hidden="true" style="width:15px;height:15px;"></i>
+          <span>Blatt 2 (PNG)</span>
+        </button>
+      </div>
+      <div class="preview-topbar-group">
+        <button type="button" class="slim-btn" id="btn-toggle-sheet-settings" onclick="togglePreviewSettings()">
+          <i data-lucide="sliders-horizontal" aria-hidden="true" style="width:15px;height:15px;"></i>
+          <span>Anpassen</span>
+        </button>
+        <button type="button" class="slim-btn" onclick="closePreviewModal()" aria-label="Vorschau schließen">
+          <i data-lucide="x" aria-hidden="true" style="width:16px;height:16px;"></i>
+          <span>Schließen</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="preview-settings-strip" id="preview-settings-strip">
+      <div>
+        <label class="slim-field-label" for="sheet-name-input"><span>Name</span></label>
+        <input type="text" id="sheet-name-input" class="slim-input" oninput="onSheetMetaChange()">
+      </div>
+      <div>
+        <label class="slim-field-label" for="sheet-date-input"><span>Datum</span></label>
+        <input type="text" id="sheet-date-input" class="slim-input" oninput="onSheetMetaChange()">
+      </div>
+      <div>
+        <label class="slim-field-label" for="sheet-margin-slider">
+          <span>Seitenränder</span>
+          <span id="sheet-margin-val">14 mm</span>
+        </label>
+        <input type="range" id="sheet-margin-slider" min="6" max="24" step="1" value="14" oninput="onSheetMarginChange(this.value)" style="min-height: 28px;">
+      </div>
+      <div>
+        <label class="slim-field-label" for="sheet-instr-slider">
+          <span>Anweisungs-Schrift</span>
+          <span id="sheet-instr-val">10 pt</span>
+        </label>
+        <input type="range" id="sheet-instr-slider" min="8" max="14" step="0.5" value="10" oninput="onSheetInstrSizeChange(this.value)" style="min-height: 28px;">
+      </div>
+    </div>
+
+    <div id="preview-export-toast" class="status-banner hidden" style="margin: var(--space-xs) var(--space-md) 0; flex-shrink: 0;" role="status"></div>
+
+    <div class="preview-stage" id="preview-stage">
+      <div class="sheet-wrapper">
+        <div class="sheet-caption">Blatt 1 · Arbeitsblatt</div>
+        <div class="sheet-scale-box" id="scale-box-1">
+          <div class="sheet-page" id="sheet-page-1"></div>
+        </div>
+      </div>
+      <div class="sheet-wrapper">
+        <div class="sheet-caption">Blatt 2 · Separates Lösungsblatt</div>
+        <div class="sheet-scale-box" id="scale-box-2">
+          <div class="sheet-page" id="sheet-page-2"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <api-shim></api-shim>
+
+  <script>
+    /* ============================================================
+       STATE & CONSTANTS
+       ============================================================ */
+    const MAX_WS_WORDS = 150;
+    const DIFF_CLUE_RATIO = {
+      leicht: 0.64,
+      mittel: 0.50,
+      schwer: 0.36,
+      experte: 0.27
+    };
+    const DIFF_LABELS = {
+      leicht: `Leicht`,
+      mittel: `Mittel`,
+      schwer: `Schwer`,
+      experte: `Experte`
+    };
+    const DIFF_CAPTIONS = {
+      leicht: `~64 % vorgegebene Zahlen`,
+      mittel: `~50 % vorgegebene Zahlen`,
+      schwer: `~36 % vorgegebene Zahlen`,
+      experte: `~27 % vorgegebene Zahlen`
+    };
+
+    const appState = {
+      theme: `light`,
+      mode: `sudoku`,
+      boardCellZoomOffset: 0,
+      sudoku: {
+        size: 9,
+        subR: 3,
+        subC: 3,
+        difficulty: `mittel`,
+        solution: [],
+        puzzle: [],
+        userGrid: [],
+        checkedMap: [],
+        selectedCell: null,
+        showSolution: false,
+        keypadBuffer: ``
+      },
+      wortsuche: {
+        rawText: ``,
+        autoSize: true,
+        gridSize: 14,
+        dirs: {
+          horizontal: true,
+          vertical: true,
+          diagonal: true,
+          backward: false
+        },
+        umlautMode: `direct`,
+        grid: [],
+        placedWords: [],
+        unplacedWords: [],
+        foundIndices: [],
+        showSolution: false,
+        selectStart: null
+      },
+      sheet: {
+        name: ``,
+        date: formatTodayDE(),
+        marginMm: 14,
+        instrPt: 10,
+        settingsOpen: false
+      }
+    };
+
+    let pendingLargeSize = null;
+    let saveDebounceTimer = null;
+
+    function formatTodayDE() {
+      const d = new Date();
+      const dd = String(d.getDate()).padStart(2, `0`);
+      const mm = String(d.getMonth() + 1).padStart(2, `0`);
+      const yyyy = d.getFullYear();
+      return `${dd}.${mm}.${yyyy}`;
+    }
+
+    /* ============================================================
+       PERSISTENCE (notebookAppApi)
+       ============================================================ */
+    function scheduleSaveState() {
+      if (saveDebounceTimer) clearTimeout(saveDebounceTimer);
+      saveDebounceTimer = setTimeout(async function() {
+        try {
+          if (window.notebookAppApi && typeof window.notebookAppApi.setAppState === `function`) {
+            await window.notebookAppApi.setAppState({
+              theme: appState.theme,
+              mode: appState.mode,
+              boardCellZoomOffset: appState.boardCellZoomOffset,
+              sudoku: {
+                size: appState.sudoku.size,
+                subR: appState.sudoku.subR,
+                subC: appState.sudoku.subC,
+                difficulty: appState.sudoku.difficulty,
+                solution: appState.sudoku.solution,
+                puzzle: appState.sudoku.puzzle,
+                userGrid: appState.sudoku.userGrid
+              },
+              wortsuche: {
+                rawText: appState.wortsuche.rawText,
+                autoSize: appState.wortsuche.autoSize,
+                gridSize: appState.wortsuche.gridSize,
+                dirs: appState.wortsuche.dirs,
+                umlautMode: appState.wortsuche.umlautMode,
+                grid: appState.wortsuche.grid,
+                placedWords: appState.wortsuche.placedWords,
+                unplacedWords: appState.wortsuche.unplacedWords,
+                foundIndices: appState.wortsuche.foundIndices
+              },
+              sheet: appState.sheet
+            });
+          }
+        } catch (err) {
+          // Safe silent fallback
+        }
+      }, 250);
+    }
+
+    async function loadSavedState() {
+      try {
+        if (!window.notebookAppApi || typeof window.notebookAppApi.getAppState !== `function`) return;
+        const saved = await window.notebookAppApi.getAppState();
+        if (!saved || typeof saved !== `object`) return;
+
+        if (saved.theme === `dark` || saved.theme === `light`) appState.theme = saved.theme;
+        if (saved.mode === `sudoku` || saved.mode === `wortsuche`) appState.mode = saved.mode;
+        if (typeof saved.boardCellZoomOffset === `number`) appState.boardCellZoomOffset = saved.boardCellZoomOffset;
+
+        if (saved.sudoku && typeof saved.sudoku === `object`) {
+          const s = saved.sudoku;
+          if (typeof s.size === `number` && s.size >= 4 && s.size <= 55) appState.sudoku.size = s.size;
+          if (typeof s.subR === `number`) appState.sudoku.subR = s.subR;
+          if (typeof s.subC === `number`) appState.sudoku.subC = s.subC;
+          if (DIFF_CLUE_RATIO[s.difficulty]) appState.sudoku.difficulty = s.difficulty;
+          if (Array.isArray(s.solution) && s.solution.length === appState.sudoku.size) {
+            appState.sudoku.solution = s.solution;
+            appState.sudoku.puzzle = Array.isArray(s.puzzle) ? s.puzzle : [];
+            appState.sudoku.userGrid = Array.isArray(s.userGrid) ? s.userGrid : [];
+          }
+        }
+
+        if (saved.wortsuche && typeof saved.wortsuche === `object`) {
+          const w = saved.wortsuche;
+          if (typeof w.rawText === `string`) appState.wortsuche.rawText = w.rawText;
+          if (typeof w.autoSize === `boolean`) appState.wortsuche.autoSize = w.autoSize;
+          if (typeof w.gridSize === `number`) appState.wortsuche.gridSize = w.gridSize;
+          if (w.dirs && typeof w.dirs === `object`) {
+            appState.wortsuche.dirs = {
+              horizontal: !!w.dirs.horizontal,
+              vertical: !!w.dirs.vertical,
+              diagonal: !!w.dirs.diagonal,
+              backward: !!w.dirs.backward
+            };
+          }
+          if (w.umlautMode === `direct` || w.umlautMode === `replace`) {
+            appState.wortsuche.umlautMode = w.umlautMode;
+          }
+          if (Array.isArray(w.grid)) appState.wortsuche.grid = w.grid;
+          if (Array.isArray(w.placedWords)) appState.wortsuche.placedWords = w.placedWords;
+          if (Array.isArray(w.unplacedWords)) appState.wortsuche.unplacedWords = w.unplacedWords;
+          if (Array.isArray(w.foundIndices)) appState.wortsuche.foundIndices = w.foundIndices;
+        }
+
+        if (saved.sheet && typeof saved.sheet === `object`) {
+          if (typeof saved.sheet.name === `string`) appState.sheet.name = saved.sheet.name;
+          if (typeof saved.sheet.date === `string`) appState.sheet.date = saved.sheet.date;
+          if (typeof saved.sheet.marginMm === `number`) appState.sheet.marginMm = saved.sheet.marginMm;
+          if (typeof saved.sheet.instrPt === `number`) appState.sheet.instrPt = saved.sheet.instrPt;
+        }
+      } catch (err) {
+        // Ignore corrupted saved state
+      }
+    }
+
+    /* ============================================================
+       THEME & MODE SWITCHING
+       ============================================================ */
+    function applyTheme() {
+      const root = document.documentElement;
+      if (appState.theme === `dark`) {
+        root.setAttribute(`data-theme`, `dark`);
+      } else {
+        root.removeAttribute(`data-theme`);
+      }
+      const lbl = document.getElementById(`theme-label`);
+      if (lbl) lbl.textContent = appState.theme === `dark` ? `Hellmodus` : `Dunkelmodus`;
+      const btn = document.getElementById(`btn-theme-toggle`);
+      if (btn) {
+        btn.innerHTML = appState.theme === `dark`
+          ? `<i data-lucide="sun" aria-hidden="true" style="width:18px;height:18px;"></i><span id="theme-label">Hellmodus</span>`
+          : `<i data-lucide="moon" aria-hidden="true" style="width:18px;height:18px;"></i><span id="theme-label">Dunkelmodus</span>`;
+      }
+      refreshIcons();
+    }
+
+    function toggleTheme() {
+      appState.theme = appState.theme === `dark` ? `light` : `dark`;
+      applyTheme();
+      scheduleSaveState();
+    }
+
+    function switchMode(mode) {
+      appState.mode = mode === `wortsuche` ? `wortsuche` : `sudoku`;
+      const tabSudoku = document.getElementById(`tab-sudoku`);
+      const tabWs = document.getElementById(`tab-wortsuche`);
+      const cfgSudoku = document.getElementById(`config-sudoku`);
+      const cfgWs = document.getElementById(`config-wortsuche`);
+      const playSudoku = document.getElementById(`sudoku-play-area`);
+      const playWs = document.getElementById(`wortsuche-play-area`);
+
+      if (tabSudoku) tabSudoku.classList.toggle(`is-active`, appState.mode === `sudoku`);
+      if (tabWs) tabWs.classList.toggle(`is-active`, appState.mode === `wortsuche`);
+      if (cfgSudoku) cfgSudoku.classList.toggle(`hidden`, appState.mode !== `sudoku`);
+      if (cfgWs) cfgWs.classList.toggle(`hidden`, appState.mode !== `wortsuche`);
+      if (playSudoku) playSudoku.classList.toggle(`hidden`, appState.mode !== `sudoku`);
+      if (playWs) playWs.classList.toggle(`hidden`, appState.mode !== `wortsuche`);
+
+      hideFeedback();
+      updatePlayHeader();
+      scheduleSaveState();
+    }
+
+    function updatePlayHeader() {
+      const titleEl = document.getElementById(`play-title`);
+      const subEl = document.getElementById(`play-subtitle`);
+      const tagEl = document.getElementById(`header-status-tag`);
+      const solLbl = document.getElementById(`lbl-toggle-solution`);
+
+      if (appState.mode === `sudoku`) {
+        const s = appState.sudoku;
+        const boxTxt = s.subR > 1 ? `Unterblöcke ${s.subR}×${s.subC}` : `Lateinisches Quadrat`;
+        if (titleEl) titleEl.innerHTML = `<strong>${s.size}×${s.size} Sudoku</strong> · ${DIFF_LABELS[s.difficulty]}`;
+        if (subEl) subEl.textContent = `${boxTxt} · Tippe ein leeres Kästchen an und wähle eine Zahl.`;
+        if (tagEl) tagEl.textContent = `${s.size}×${s.size} · ${DIFF_LABELS[s.difficulty]}`;
+        if (solLbl) solLbl.textContent = s.showSolution ? `Lösung ausblenden` : `Lösung anzeigen`;
+      } else {
+        const w = appState.wortsuche;
+        const count = w.placedWords.length;
+        if (titleEl) titleEl.innerHTML = `<strong>Wortsuche</strong>${count > 0 ? ` · ${w.gridSize}×${w.gridSize}` : ``}`;
+        if (subEl) {
+          subEl.textContent = count > 0
+            ? `Tippe Anfangs- und Endbuchstabe eines Wortes nacheinander an.`
+            : `Gib links eigene Wörter ein und erstelle dein Rätsel.`;
+        }
+        if (tagEl) tagEl.textContent = count > 0 ? `${count} Wörter · ${w.gridSize}×${w.gridSize}` : `Wortsuche`;
+        if (solLbl) solLbl.textContent = w.showSolution ? `Lösung ausblenden` : `Lösung anzeigen`;
+      }
+    }
+
+    function showFeedback(message, type) {
+      const el = document.getElementById(`live-feedback`);
+      if (!el) return;
+      el.className = `status-banner`;
+      if (type === `success`) el.classList.add(`is-success`);
+      if (type === `error`) el.classList.add(`is-error`);
+      if (type === `warning`) el.classList.add(`is-warning`);
+      el.textContent = message;
+      el.classList.remove(`hidden`);
+    }
+
+    function hideFeedback() {
+      const el = document.getElementById(`live-feedback`);
+      if (el) el.classList.add(`hidden`);
+    }
+
+    /* ============================================================
+       SUDOKU LOGIC (UP TO 55x55)
+       ============================================================ */
+    function computeSubgridDimensions(n) {
+      let bestR = 1;
+      let bestC = n;
+      const limit = Math.floor(Math.sqrt(n));
+      for (let r = limit; r >= 2; r--) {
+        if (n % r === 0) {
+          bestR = r;
+          bestC = n / r;
+          break;
+        }
+      }
+      return { r: bestR, c: bestC };
+    }
+
+    function syncSudokuConfigUI() {
+      const sizeInput = document.getElementById(`sudoku-size-input`);
+      if (sizeInput) sizeInput.value = appState.sudoku.size;
+
+      const dims = computeSubgridDimensions(appState.sudoku.size);
+      const subInfo = document.getElementById(`sudoku-subgrid-info`);
+      const primeNote = document.getElementById(`sudoku-prime-note`);
+      if (subInfo) {
+        subInfo.textContent = dims.r > 1 ? `Unterblöcke: ${dims.r}×${dims.c}` : `Ohne Unterblöcke (Primzahl)`;
+      }
+      if (primeNote) {
+        if (dims.r === 1) {
+          primeNote.textContent = `Hinweis: ${appState.sudoku.size} ist eine Primzahl und lässt sich nicht in rechteckige Unterblöcke teilen. Es wird ein vollständiges Lateinisches Quadrat erzeugt.`;
+          primeNote.style.display = `block`;
+        } else {
+          primeNote.style.display = `none`;
+        }
+      }
+
+      const presets = document.querySelectorAll(`#sudoku-size-presets .chip-btn`);
+      presets.forEach(function(btn) {
+        const val = parseInt(btn.textContent, 10);
+        btn.classList.toggle(`is-selected`, val === appState.sudoku.size);
+      });
+
+      const diffs = document.querySelectorAll(`#sudoku-diff-group .chip-btn`);
+      diffs.forEach(function(btn) {
+        btn.classList.toggle(`is-selected`, btn.dataset.diff === appState.sudoku.difficulty);
+      });
+      const diffCap = document.getElementById(`sudoku-diff-caption`);
+      if (diffCap) diffCap.textContent = DIFF_CAPTIONS[appState.sudoku.difficulty] || ``;
+    }
+
+    function selectSudokuSize(n) {
+      const clamped = Math.max(4, Math.min(55, parseInt(n, 10) || 9));
+      appState.sudoku.size = clamped;
+      syncSudokuConfigUI();
+      if (clamped <= 40) {
+        generateSudokuNow();
+      } else {
+        openLargeWarningModal(clamped);
+      }
+    }
+
+    function onSudokuSizeInput(val) {
+      const num = parseInt(val, 10);
+      if (isNaN(num)) return;
+      const clamped = Math.max(4, Math.min(55, num));
+      appState.sudoku.size = clamped;
+      syncSudokuConfigUI();
+    }
+
+    function selectDifficulty(diff) {
+      if (!DIFF_CLUE_RATIO[diff]) return;
+      appState.sudoku.difficulty = diff;
+      syncSudokuConfigUI();
+      if (appState.sudoku.size <= 40) {
+        generateSudokuNow();
+      } else {
+        openLargeWarningModal(appState.sudoku.size);
+      }
+    }
+
+    function requestSudokuGeneration() {
+      const input = document.getElementById(`sudoku-size-input`);
+      const num = input ? parseInt(input.value, 10) : appState.sudoku.size;
+      const clamped = Math.max(4, Math.min(55, isNaN(num) ? 9 : num));
+      appState.sudoku.size = clamped;
+      syncSudokuConfigUI();
+
+      if (clamped > 40) {
+        openLargeWarningModal(clamped);
+      } else {
+        generateSudokuNow();
+      }
+    }
+
+    function openLargeWarningModal(size) {
+      pendingLargeSize = size;
+      const desc = document.getElementById(`warn-desc`);
+      if (desc) {
+        desc.textContent = `Bei der gewählten Rastergröße ${size}×${size} (${(size * size).toLocaleString(`de-DE`)} Felder) werden die Kästchen und Zahlen sowohl am Bildschirm als auch auf DIN-A4-Arbeitsblättern sehr klein dargestellt.`;
+      }
+      const modal = document.getElementById(`size-warning-modal`);
+      if (modal) modal.classList.add(`is-open`);
+    }
+
+    function cancelLargeSudoku() {
+      pendingLargeSize = null;
+      const modal = document.getElementById(`size-warning-modal`);
+      if (modal) modal.classList.remove(`is-open`);
+    }
+
+    function confirmLargeSudoku() {
+      const modal = document.getElementById(`size-warning-modal`);
+      if (modal) modal.classList.remove(`is-open`);
+      if (pendingLargeSize) {
+        appState.sudoku.size = pendingLargeSize;
+        pendingLargeSize = null;
+      }
+      generateSudokuNow();
+    }
+
+    function shuffleArray(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        const tmp = arr[i];
+        arr[i] = arr[j];
+        arr[j] = tmp;
+      }
+      return arr;
+    }
+
+    function buildValidSudokuSolution(N, R, C) {
+      // Base canonical Sudoku grid: ((r * C + floor(r / R) + c) % N) + 1
+      let grid = new Array(N);
+      for (let r = 0; r < N; r++) {
+        grid[r] = new Array(N);
+        const shift = r * C + Math.floor(r / R);
+        for (let c = 0; c < N; c++) {
+          grid[r][c] = ((shift + c) % N) + 1;
+        }
+      }
+
+      // 1. Relabel symbols 1..N randomly
+      const nums = [];
+      for (let i = 1; i <= N; i++) nums.push(i);
+      shuffleArray(nums);
+      for (let r = 0; r < N; r++) {
+        for (let c = 0; c < N; c++) {
+          grid[r][c] = nums[grid[r][c] - 1];
+        }
+      }
+
+      // 2. Permute rows within each row band & permute row bands
+      const rowBands = [];
+      for (let b = 0; b < C; b++) {
+        const band = [];
+        for (let i = 0; i < R; i++) band.push(b * R + i);
+        shuffleArray(band);
+        rowBands.push(band);
+      }
+      shuffleArray(rowBands);
+      const rowOrder = [];
+      rowBands.forEach(function(band) {
+        band.forEach(function(idx) { rowOrder.push(idx); });
+      });
+
+      // 3. Permute cols within each col band & permute col bands
+      const colBands = [];
+      for (let b = 0; b < R; b++) {
+        const band = [];
+        for (let i = 0; i < C; i++) band.push(b * C + i);
+        shuffleArray(band);
+        colBands.push(band);
+      }
+      shuffleArray(colBands);
+      const colOrder = [];
+      colBands.forEach(function(band) {
+        band.forEach(function(idx) { colOrder.push(idx); });
+      });
+
+      const finalGrid = new Array(N);
+      for (let r = 0; r < N; r++) {
+        finalGrid[r] = new Array(N);
+        const srcRow = grid[rowOrder[r]];
+        for (let c = 0; c < N; c++) {
+          finalGrid[r][c] = srcRow[colOrder[c]];
+        }
+      }
+      return finalGrid;
+    }
+
+    function generateSudokuNow() {
+      const N = appState.sudoku.size;
+      const dims = computeSubgridDimensions(N);
+      const R = dims.r;
+      const C = dims.c;
+
+      const solution = buildValidSudokuSolution(N, R, C);
+      const ratio = DIFF_CLUE_RATIO[appState.sudoku.difficulty] || 0.5;
+      const totalCells = N * N;
+      const targetClues = Math.max(N, Math.round(totalCells * ratio));
+
+      // Shuffle all cell positions and keep targetClues
+      const positions = new Array(totalCells);
+      for (let i = 0; i < totalCells; i++) positions[i] = i;
+      shuffleArray(positions);
+
+      const puzzle = Array.from({ length: N }, function() { return new Array(N).fill(0); });
+      for (let k = 0; k < targetClues; k++) {
+        const idx = positions[k];
+        const r = Math.floor(idx / N);
+        const c = idx % N;
+        puzzle[r][c] = solution[r][c];
+      }
+
+      appState.sudoku.subR = R;
+      appState.sudoku.subC = C;
+      appState.sudoku.solution = solution;
+      appState.sudoku.puzzle = puzzle;
+      appState.sudoku.userGrid = Array.from({ length: N }, function() { return new Array(N).fill(0); });
+      appState.sudoku.checkedMap = Array.from({ length: N }, function() { return new Array(N).fill(0); });
+      appState.sudoku.selectedCell = null;
+      appState.sudoku.showSolution = false;
+      appState.sudoku.keypadBuffer = ``;
+
+      hideFeedback();
+      renderSudokuBoard();
+      renderSudokuKeypad();
+      updatePlayHeader();
+      scheduleSaveState();
+    }
+
+    function getDefaultCellSize(N) {
+      if (N <= 4) return 56;
+      if (N <= 9) return 42;
+      if (N <= 16) return 32;
+      if (N <= 25) return 26;
+      if (N <= 36) return 22;
+      return 20;
+    }
+
+    function adjustBoardZoom(delta) {
+      appState.boardCellZoomOffset = Math.max(-10, Math.min(20, appState.boardCellZoomOffset + delta));
+      const zoomTag = document.getElementById(`board-zoom-value`);
+      if (zoomTag) {
+        zoomTag.textContent = appState.boardCellZoomOffset === 0
+          ? `Auto`
+          : (appState.boardCellZoomOffset > 0 ? `+${appState.boardCellZoomOffset}px` : `${appState.boardCellZoomOffset}px`);
+      }
+      if (appState.mode === `sudoku`) {
+        renderSudokuBoard();
+      } else {
+        renderWordSearchBoard();
+      }
+      scheduleSaveState();
+    }
+
+    function renderSudokuBoard() {
+      const gridEl = document.getElementById(`sudoku-grid`);
+      if (!gridEl) return;
+      const s = appState.sudoku;
+      const N = s.size;
+      if (!s.puzzle || s.puzzle.length !== N) return;
+
+      const baseSize = getDefaultCellSize(N);
+      const cellPx = Math.max(14, Math.min(64, baseSize + appState.boardCellZoomOffset));
+      const fontPx = Math.max(9, Math.floor(cellPx * (N >= 10 ? 0.48 : 0.56)));
+
+      gridEl.style.gridTemplateColumns = `repeat(${N}, ${cellPx}px)`;
+      gridEl.style.gridTemplateRows = `repeat(${N}, ${cellPx}px)`;
+
+      const sel = s.selectedCell;
+      const selBlockR = sel && s.subR > 1 ? Math.floor(sel.r / s.subR) : -1;
+      const selBlockC = sel && s.subC > 1 ? Math.floor(sel.c / s.subC) : -1;
+
+      const frag = document.createDocumentFragment();
+      for (let r = 0; r < N; r++) {
+        for (let c = 0; c < N; c++) {
+          const cell = document.createElement(`div`);
+          cell.className = `sudoku-cell`;
+          cell.style.width = `${cellPx}px`;
+          cell.style.height = `${cellPx}px`;
+          cell.style.fontSize = `${fontPx}px`;
+          cell.dataset.r = r;
+          cell.dataset.c = c;
+
+          const givenVal = s.puzzle[r][c];
+          const userVal = s.userGrid[r] ? s.userGrid[r][c] : 0;
+          const solVal = s.solution[r][c];
+          const checkState = s.checkedMap[r] ? s.checkedMap[r][c] : 0;
+
+          if (givenVal > 0) {
+            cell.classList.add(`is-given`);
+            cell.textContent = String(givenVal);
+          } else if (s.showSolution) {
+            cell.classList.add(`is-solution-reveal`);
+            cell.textContent = String(solVal);
+          } else if (userVal > 0) {
+            cell.textContent = String(userVal);
+            if (checkState === 1) cell.classList.add(`is-correct`);
+            if (checkState === -1) cell.classList.add(`is-wrong`);
+          }
+
+          if (sel) {
+            const sameBlock = s.subR > 1 && Math.floor(r / s.subR) === selBlockR && Math.floor(c / s.subC) === selBlockC;
+            if (r === sel.r && c === sel.c) {
+              cell.classList.add(`is-selected`);
+            } else if (r === sel.r || c === sel.c || sameBlock) {
+              cell.classList.add(`is-peer`);
+            }
+          }
+
+          if (c === N - 1) {
+            cell.classList.add(`border-right-none`);
+          } else if (s.subC > 1 && (c + 1) % s.subC === 0) {
+            cell.classList.add(`border-right-thick`);
+          }
+          if (r === N - 1) {
+            cell.classList.add(`border-bottom-none`);
+          } else if (s.subR > 1 && (r + 1) % s.subR === 0) {
+            cell.classList.add(`border-bottom-thick`);
+          }
+
+          cell.addEventListener(`click`, function() {
+            selectSudokuCell(r, c);
+          });
+          frag.appendChild(cell);
+        }
+      }
+      gridEl.innerHTML = ``;
+      gridEl.appendChild(frag);
+    }
+
+    function selectSudokuCell(r, c) {
+      appState.sudoku.selectedCell = { r: r, c: c };
+      appState.sudoku.keypadBuffer = ``;
+      const tag = document.getElementById(`selected-cell-tag`);
+      if (tag) {
+        const isGiven = appState.sudoku.puzzle[r][c] > 0;
+        tag.textContent = `Zeile ${r + 1}, Spalte ${c + 1}${isGiven ? ` (Vorgabe)` : ``}`;
+      }
+      renderSudokuBoard();
+    }
+
+    function renderSudokuKeypad() {
+      const keypadEl = document.getElementById(`sudoku-keypad`);
+      const hintEl = document.getElementById(`keypad-hint`);
+      if (!keypadEl) return;
+      const N = appState.sudoku.size;
+      keypadEl.innerHTML = ``;
+
+      if (N <= 16) {
+        if (hintEl) hintEl.textContent = `Zahl auswählen (1 bis ${N})`;
+        for (let num = 1; num <= N; num++) {
+          const btn = document.createElement(`button`);
+          btn.type = `button`;
+          btn.className = `keypad-btn`;
+          btn.textContent = String(num);
+          btn.addEventListener(`click`, function() {
+            enterSudokuValue(num);
+          });
+          keypadEl.appendChild(btn);
+        }
+      } else {
+        if (hintEl) hintEl.textContent = `Ziffernblock für zweistellige Zahlen (1 bis ${N})`;
+        for (let d = 1; d <= 9; d++) {
+          const btn = document.createElement(`button`);
+          btn.type = `button`;
+          btn.className = `keypad-btn`;
+          btn.textContent = String(d);
+          btn.addEventListener(`click`, function() {
+            appendKeypadDigit(String(d));
+          });
+          keypadEl.appendChild(btn);
+        }
+        const btn0 = document.createElement(`button`);
+        btn0.type = `button`;
+        btn0.className = `keypad-btn`;
+        btn0.textContent = `0`;
+        btn0.addEventListener(`click`, function() {
+          appendKeypadDigit(`0`);
+        });
+        keypadEl.appendChild(btn0);
+      }
+
+      const eraseBtn = document.createElement(`button`);
+      eraseBtn.type = `button`;
+      eraseBtn.className = `keypad-btn`;
+      eraseBtn.textContent = `Löschen`;
+      eraseBtn.addEventListener(`click`, function() {
+        enterSudokuValue(0);
+      });
+      keypadEl.appendChild(eraseBtn);
+
+      const nextBtn = document.createElement(`button`);
+      nextBtn.type = `button`;
+      nextBtn.className = `keypad-btn`;
+      nextBtn.textContent = `Nächstes leeres Feld`;
+      nextBtn.addEventListener(`click`, function() {
+        jumpToNextEmptyCell();
+      });
+      keypadEl.appendChild(nextBtn);
+    }
+
+    function appendKeypadDigit(digit) {
+      const s = appState.sudoku;
+      if (!s.selectedCell) {
+        jumpToNextEmptyCell();
+        if (!s.selectedCell) return;
+      }
+      const r = s.selectedCell.r;
+      const c = s.selectedCell.c;
+      if (s.puzzle[r][c] > 0) return;
+
+      let nextBuf = s.keypadBuffer + digit;
+      let val = parseInt(nextBuf, 10);
+      if (val > s.size || nextBuf.length > 2) {
+        nextBuf = digit;
+        val = parseInt(nextBuf, 10);
+      }
+      if (val === 0) {
+        s.keypadBuffer = ``;
+        return;
+      }
+      s.keypadBuffer = nextBuf;
+      enterSudokuValue(val, true);
+    }
+
+    function enterSudokuValue(val, keepBuffer) {
+      const s = appState.sudoku;
+      if (!s.selectedCell) return;
+      const r = s.selectedCell.r;
+      const c = s.selectedCell.c;
+      if (s.puzzle[r][c] > 0) return;
+      if (val < 0 || val > s.size) return;
+
+      s.userGrid[r][c] = val;
+      if (s.checkedMap[r]) s.checkedMap[r][c] = 0;
+      if (!keepBuffer) s.keypadBuffer = ``;
+      s.showSolution = false;
+      updatePlayHeader();
+      renderSudokuBoard();
+      scheduleSaveState();
+    }
+
+    function jumpToNextEmptyCell() {
+      const s = appState.sudoku;
+      const N = s.size;
+      const startIdx = s.selectedCell ? (s.selectedCell.r * N + s.selectedCell.c + 1) : 0;
+      for (let offset = 0; offset < N * N; offset++) {
+        const idx = (startIdx + offset) % (N * N);
+        const r = Math.floor(idx / N);
+        const c = idx % N;
+        if (s.puzzle[r][c] === 0 && s.userGrid[r][c] === 0) {
+          selectSudokuCell(r, c);
+          return;
+        }
+      }
+    }
+
+    /* Physical keyboard support for desktop */
+    document.addEventListener(`keydown`, function(e) {
+      if (appState.mode !== `sudoku`) return;
+      const previewOpen = document.getElementById(`preview-modal`)?.classList.contains(`is-open`);
+      const warnOpen = document.getElementById(`size-warning-modal`)?.classList.contains(`is-open`);
+      if (previewOpen || warnOpen) return;
+      const tag = document.activeElement ? document.activeElement.tagName : ``;
+      if (tag === `INPUT` || tag === `TEXTAREA`) return;
+      if (!appState.sudoku.selectedCell) return;
+
+      if (e.key >= `0` && e.key <= `9`) {
+        e.preventDefault();
+        if (appState.sudoku.size <= 9) {
+          const val = parseInt(e.key, 10);
+          if (val >= 1 && val <= appState.sudoku.size) enterSudokuValue(val);
+        } else {
+          appendKeypadDigit(e.key);
+        }
+      } else if (e.key === `Backspace` || e.key === `Delete`) {
+        e.preventDefault();
+        enterSudokuValue(0);
+      } else if (e.key === `ArrowRight`) {
+        e.preventDefault();
+        const sel = appState.sudoku.selectedCell;
+        selectSudokuCell(sel.r, (sel.c + 1) % appState.sudoku.size);
+      } else if (e.key === `ArrowLeft`) {
+        e.preventDefault();
+        const sel = appState.sudoku.selectedCell;
+        selectSudokuCell(sel.r, (sel.c - 1 + appState.sudoku.size) % appState.sudoku.size);
+      } else if (e.key === `ArrowDown`) {
+        e.preventDefault();
+        const sel = appState.sudoku.selectedCell;
+        selectSudokuCell((sel.r + 1) % appState.sudoku.size, sel.c);
+      } else if (e.key === `ArrowUp`) {
+        e.preventDefault();
+        const sel = appState.sudoku.selectedCell;
+        selectSudokuCell((sel.r - 1 + appState.sudoku.size) % appState.sudoku.size, sel.c);
+      }
+    });
+
+    /* ============================================================
+       WORTSUCHE LOGIC (MAX 150 WORDS, NO TEMPLATES, DISTINCT COLORS)
+       ============================================================ */
+    function parseWordsInput(raw, umlautMode) {
+      const tokens = raw
+        .split(/[\n,;]+/)
+        .map(function(s) { return s.trim(); })
+        .filter(function(s) { return s.length > 0; });
+
+      const unique = [];
+      const seen = new Set();
+      for (let i = 0; i < tokens.length; i++) {
+        let word = tokens[i].toUpperCase();
+        word = word.replace(/ß/g, `SS`);
+        if (umlautMode === `replace`) {
+          word = word.replace(/Ä/g, `AE`).replace(/Ö/g, `OE`).replace(/Ü/g, `UE`);
+          word = word.replace(/[^A-Z]/g, ``);
+        } else {
+          word = word.replace(/[^A-ZÄÖÜ]/g, ``);
+        }
+        if (word.length >= 2 && !seen.has(word)) {
+          seen.add(word);
+          unique.push(word);
+          if (unique.length >= MAX_WS_WORDS) break;
+        }
+      }
+      return unique;
+    }
+
+    function getDistinctWordColor(idx, total) {
+      // Golden-angle stepping ensures distinct hues even up to 150 words
+      const hue = Math.round((idx * 137.508) % 360);
+      const tier = idx % 3;
+      const sat = tier === 0 ? 74 : (tier === 1 ? 64 : 82);
+      const light = tier === 0 ? 42 : (tier === 1 ? 35 : 48);
+      return `hsl(${hue}, ${sat}%, ${light}%)`;
+    }
+
+    function getDistinctWordFill(idx) {
+      const hue = Math.round((idx * 137.508) % 360);
+      const tier = idx % 3;
+      const sat = tier === 0 ? 78 : (tier === 1 ? 68 : 84);
+      const light = tier === 0 ? 52 : (tier === 1 ? 46 : 56);
+      return `hsla(${hue}, ${sat}%, ${light}%, 0.28)`;
+    }
+
+    function onWordsTextChange(val) {
+      appState.wortsuche.rawText = val;
+      const words = parseWordsInput(val, appState.wortsuche.umlautMode);
+      const badge = document.getElementById(`ws-word-count`);
+      if (badge) badge.textContent = `${words.length} / ${MAX_WS_WORDS} Wörter`;
+      scheduleSaveState();
+    }
+
+    function clearWordsList(btn) {
+      if (!appState.wortsuche.rawText.trim()) return;
+      if (btn.dataset.armed !== `true`) {
+        btn.dataset.armed = `true`;
+        btn.textContent = `Wirklich leeren?`;
+        setTimeout(function() {
+          btn.dataset.armed = `false`;
+          btn.textContent = `Liste leeren`;
+        }, 3000);
+        return;
+      }
+      btn.dataset.armed = `false`;
+      btn.textContent = `Liste leeren`;
+      appState.wortsuche.rawText = ``;
+      const textarea = document.getElementById(`ws-words-input`);
+      if (textarea) textarea.value = ``;
+      appState.wortsuche.grid = [];
+      appState.wortsuche.placedWords = [];
+      appState.wortsuche.unplacedWords = [];
+      appState.wortsuche.foundIndices = [];
+      onWordsTextChange(``);
+      renderWordSearchBoard();
+      updatePlayHeader();
+      hideFeedback();
+      scheduleSaveState();
+    }
+
+    function toggleWsAutoSize(checked) {
+      appState.wortsuche.autoSize = checked;
+      const row = document.getElementById(`ws-manual-size-row`);
+      if (row) row.style.opacity = checked ? `0.5` : `1`;
+      const slider = document.getElementById(`ws-size-slider`);
+      const num = document.getElementById(`ws-size-number`);
+      if (slider) slider.disabled = checked;
+      if (num) num.disabled = checked;
+      scheduleSaveState();
+    }
+
+    function syncWsSizeFromSlider(val) {
+      const clamped = Math.max(10, Math.min(40, parseInt(val, 10) || 14));
+      appState.wortsuche.gridSize = clamped;
+      const num = document.getElementById(`ws-size-number`);
+      const badge = document.getElementById(`ws-size-badge`);
+      if (num) num.value = clamped;
+      if (badge) badge.textContent = `${clamped} × ${clamped}`;
+      scheduleSaveState();
+    }
+
+    function syncWsSizeFromNumber(val) {
+      const num = parseInt(val, 10);
+      if (isNaN(num)) return;
+      const clamped = Math.max(10, Math.min(40, num));
+      appState.wortsuche.gridSize = clamped;
+      const slider = document.getElementById(`ws-size-slider`);
+      const badge = document.getElementById(`ws-size-badge`);
+      if (slider) slider.value = clamped;
+      if (badge) badge.textContent = `${clamped} × ${clamped}`;
+      scheduleSaveState();
+    }
+
+    function onWsOptionsChange() {
+      appState.wortsuche.dirs = {
+        horizontal: !!document.getElementById(`dir-horizontal`)?.checked,
+        vertical: !!document.getElementById(`dir-vertical`)?.checked,
+        diagonal: !!document.getElementById(`dir-diagonal`)?.checked,
+        backward: !!document.getElementById(`dir-backward`)?.checked
+      };
+      scheduleSaveState();
+    }
+
+    function setUmlautMode(mode) {
+      appState.wortsuche.umlautMode = mode === `replace` ? `replace` : `direct`;
+      document.getElementById(`umlaut-direct`)?.classList.toggle(`is-selected`, appState.wortsuche.umlautMode === `direct`);
+      document.getElementById(`umlaut-replace`)?.classList.toggle(`is-selected`, appState.wortsuche.umlautMode === `replace`);
+      onWordsTextChange(appState.wortsuche.rawText);
+      scheduleSaveState();
+    }
+
+    function getAllowedDirectionVectors() {
+      const d = appState.wortsuche.dirs;
+      const vectors = [];
+      if (d.horizontal) {
+        vectors.push({ dr: 0, dc: 1 });
+        if (d.backward) vectors.push({ dr: 0, dc: -1 });
+      }
+      if (d.vertical) {
+        vectors.push({ dr: 1, dc: 0 });
+        if (d.backward) vectors.push({ dr: -1, dc: 0 });
+      }
+      if (d.diagonal) {
+        vectors.push({ dr: 1, dc: 1 });
+        vectors.push({ dr: -1, dc: 1 });
+        if (d.backward) {
+          vectors.push({ dr: 1, dc: -1 });
+          vectors.push({ dr: -1, dc: -1 });
+        }
+      }
+      return vectors;
+    }
+
+    function generateWordSearch() {
+      const words = parseWordsInput(appState.wortsuche.rawText, appState.wortsuche.umlautMode);
+      if (words.length === 0) {
+        showFeedback(`Bitte gib zuerst mindestens ein Wort mit mindestens 2 Buchstaben ein.`, `warning`);
+        return;
+      }
+
+      const vectors = getAllowedDirectionVectors();
+      if (vectors.length === 0) {
+        showFeedback(`Bitte wähle mindestens eine Richtung (Horizontal, Vertikal oder Schräg) aus.`, `warning`);
+        return;
+      }
+
+      const longest = words.reduce(function(m, w) { return Math.max(m, w.length); }, 0);
+      const totalChars = words.reduce(function(acc, w) { return acc + w.length; }, 0);
+
+      let N = appState.wortsuche.gridSize;
+      if (appState.wortsuche.autoSize) {
+        const areaNeeded = Math.ceil(Math.sqrt(totalChars * 1.45));
+        N = Math.max(10, longest + 2, areaNeeded);
+        N = Math.min(45, N);
+      } else {
+        if (longest > N) {
+          N = Math.min(45, longest);
+          showFeedback(`Hinweis: Das längste Wort hat ${longest} Buchstaben — das Raster wurde auf ${N}×${N} erweitert.`, `warning`);
+        }
+      }
+
+      // Sort longest first for best packing
+      const sorted = words.slice().sort(function(a, b) { return b.length - a.length; });
+
+      let grid = Array.from({ length: N }, function() { return new Array(N).fill(``); });
+      const placed = [];
+      const unplaced = [];
+
+      for (let wi = 0; wi < sorted.length; wi++) {
+        const word = sorted[wi];
+        if (word.length > N) {
+          unplaced.push(word);
+          continue;
+        }
+
+        let bestPlacement = null;
+        let bestScore = -1;
+
+        // Collect candidate spots; prefer intersections
+        const dirsShuffled = shuffleArray(vectors.slice());
+        const attempts = N <= 25 ? 240 : 400;
+
+        for (let a = 0; a < attempts; a++) {
+          const vec = dirsShuffled[a % dirsShuffled.length];
+          const r0 = Math.floor(Math.random() * N);
+          const c0 = Math.floor(Math.random() * N);
+          const rEnd = r0 + vec.dr * (word.length - 1);
+          const cEnd = c0 + vec.dc * (word.length - 1);
+          if (rEnd < 0 || rEnd >= N || cEnd < 0 || cEnd >= N) continue;
+
+          let fits = true;
+          let overlaps = 0;
+          for (let k = 0; k < word.length; k++) {
+            const rr = r0 + vec.dr * k;
+            const cc = c0 + vec.dc * k;
+            const existing = grid[rr][cc];
+            if (existing !== `` && existing !== word[k]) {
+              fits = false;
+              break;
+            }
+            if (existing === word[k]) overlaps++;
+          }
+          if (fits) {
+            if (overlaps > bestScore) {
+              bestScore = overlaps;
+              bestPlacement = { r0: r0, c0: c0, dr: vec.dr, dc: vec.dc };
+              if (overlaps >= 2) break;
+            }
+          }
+        }
+
+        // Deterministic fallback scan if random attempts missed
+        if (!bestPlacement) {
+          outerScan:
+          for (let di = 0; di < dirsShuffled.length; di++) {
+            const vec = dirsShuffled[di];
+            for (let r0 = 0; r0 < N; r0++) {
+              for (let c0 = 0; c0 < N; c0++) {
+                const rEnd = r0 + vec.dr * (word.length - 1);
+                const cEnd = c0 + vec.dc * (word.length - 1);
+                if (rEnd < 0 || rEnd >= N || cEnd < 0 || cEnd >= N) continue;
+                let fits = true;
+                for (let k = 0; k < word.length; k++) {
+                  const existing = grid[r0 + vec.dr * k][c0 + vec.dc * k];
+                  if (existing !== `` && existing !== word[k]) {
+                    fits = false;
+                    break;
+                  }
+                }
+                if (fits) {
+                  bestPlacement = { r0: r0, c0: c0, dr: vec.dr, dc: vec.dc };
+                  break outerScan;
+                }
+              }
+            }
+          }
+        }
+
+        if (bestPlacement) {
+          for (let k = 0; k < word.length; k++) {
+            grid[bestPlacement.r0 + bestPlacement.dr * k][bestPlacement.c0 + bestPlacement.dc * k] = word[k];
+          }
+          placed.push({
+            word: word,
+            r0: bestPlacement.r0,
+            c0: bestPlacement.c0,
+            dr: bestPlacement.dr,
+            dc: bestPlacement.dc,
+            r1: bestPlacement.r0 + bestPlacement.dr * (word.length - 1),
+            c1: bestPlacement.c0 + bestPlacement.dc * (word.length - 1),
+            color: getDistinctWordColor(placed.length, sorted.length),
+            fill: getDistinctWordFill(placed.length)
+          });
+        } else {
+          unplaced.push(word);
+        }
+      }
+
+      // Fill empty cells with weighted German letters
+      const alphabet = appState.wortsuche.umlautMode === `direct`
+        ? `EEEEEEENNNNNNIIIIIRRRRRSSSSSTTTTTAAAADDDDUUUULLLLCCGGMMOOBBWFKZPVJYXQÄÖÜ`
+        : `EEEEEEENNNNNNIIIIIRRRRRSSSSSTTTTTAAAADDDDUUUULLLLCCGGMMOOBBWFKZPVJYXQ`;
+
+      for (let r = 0; r < N; r++) {
+        for (let c = 0; c < N; c++) {
+          const rowArr = grid[r];
+          if (rowArr && rowArr[c] === ``) {
+            rowArr[c] = alphabet.charAt(Math.floor(Math.random() * alphabet.length));
+          }
+        }
+      }
+
+      appState.wortsuche.gridSize = N;
+      appState.wortsuche.grid = grid;
+      appState.wortsuche.placedWords = placed;
+      appState.wortsuche.unplacedWords = unplaced;
+      appState.wortsuche.foundIndices = [];
+      appState.wortsuche.showSolution = false;
+      appState.wortsuche.selectStart = null;
+
+      const sizeBadge = document.getElementById(`ws-size-badge`);
+      if (sizeBadge) sizeBadge.textContent = `${N} × ${N}`;
+
+      if (unplaced.length > 0) {
+        showFeedback(`${placed.length} Wörter platziert. ${unplaced.length} Wort/Wörter passten nicht (${unplaced.slice(0, 4).join(`, `)}${unplaced.length > 4 ? `…` : ``}) — deaktiviere „Auto“ oder vergrößere das Raster.`, `warning`);
+      } else {
+        showFeedback(`Wortsuche mit ${placed.length} Wörtern im ${N}×${N}-Raster erstellt.`, `success`);
+      }
+
+      renderWordSearchBoard();
+      updatePlayHeader();
+      scheduleSaveState();
+    }
+
+    function renderWordSearchBoard() {
+      const emptyEl = document.getElementById(`ws-empty-state`);
+      const activeEl = document.getElementById(`ws-active-board`);
+      const gridEl = document.getElementById(`ws-grid`);
+      const svgEl = document.getElementById(`ws-overlay-svg`);
+      const pillsEl = document.getElementById(`ws-word-pills`);
+      const progEl = document.getElementById(`ws-found-progress`);
+
+      const w = appState.wortsuche;
+      if (!w.grid || w.grid.length === 0 || w.placedWords.length === 0) {
+        if (emptyEl) emptyEl.classList.remove(`hidden`);
+        if (activeEl) activeEl.classList.add(`hidden`);
+        return;
+      }
+
+      if (emptyEl) emptyEl.classList.add(`hidden`);
+      if (activeEl) activeEl.classList.remove(`hidden`);
+
+      const N = w.gridSize;
+      const baseSize = N <= 14 ? 34 : (N <= 22 ? 26 : (N <= 30 ? 22 : 19));
+      const cellPx = Math.max(15, Math.min(48, baseSize + appState.boardCellZoomOffset));
+      const fontPx = Math.max(10, Math.floor(cellPx * 0.54));
+
+      if (gridEl) {
+        gridEl.style.gridTemplateColumns = `repeat(${N}, ${cellPx}px)`;
+        gridEl.style.gridTemplateRows = `repeat(${N}, ${cellPx}px)`;
+        const frag = document.createDocumentFragment();
+        for (let r = 0; r < N; r++) {
+          const wRow = w.grid[r];
+          for (let c = 0; c < N; c++) {
+            const cell = document.createElement(`div`);
+            cell.className = `ws-cell`;
+            cell.style.width = `${cellPx}px`;
+            cell.style.height = `${cellPx}px`;
+            cell.style.fontSize = `${fontPx}px`;
+            if (c === N - 1) cell.style.borderRight = `0`;
+            if (r === N - 1) cell.style.borderBottom = `0`;
+            if (w.selectStart && w.selectStart.r === r && w.selectStart.c === c) {
+              cell.classList.add(`is-start`);
+            }
+            cell.textContent = wRow && typeof wRow[c] === `string` ? wRow[c] : ``;
+            cell.addEventListener(`click`, function() {
+              onWsCellTap(r, c);
+            });
+            frag.appendChild(cell);
+          }
+        }
+        gridEl.innerHTML = ``;
+        gridEl.appendChild(frag);
+      }
+
+      // Draw SVG capsules for found words and (if showSolution) all placed words
+      if (svgEl) {
+        const totalPx = N * cellPx;
+        svgEl.setAttribute(`viewBox`, `0 0 ${totalPx} ${totalPx}`);
+        svgEl.innerHTML = ``;
+
+        w.placedWords.forEach(function(pw, idx) {
+          const isFound = w.foundIndices.includes(idx);
+          if (!w.showSolution && !isFound) return;
+
+          const x1 = (pw.c0 + 0.5) * cellPx;
+          const y1 = (pw.r0 + 0.5) * cellPx;
+          const x2 = (pw.c1 + 0.5) * cellPx;
+          const y2 = (pw.r1 + 0.5) * cellPx;
+
+          const line = document.createElementNS(`http://www.w3.org/2000/svg`, `line`);
+          line.setAttribute(`x1`, x1);
+          line.setAttribute(`y1`, y1);
+          line.setAttribute(`x2`, x2);
+          line.setAttribute(`y2`, y2);
+          line.setAttribute(`stroke`, pw.color);
+          line.setAttribute(`stroke-width`, Math.round(cellPx * 0.72));
+          line.setAttribute(`stroke-linecap`, `round`);
+          line.setAttribute(`stroke-opacity`, w.showSolution ? `0.36` : `0.28`);
+          svgEl.appendChild(line);
+        });
+      }
+
+      if (pillsEl) {
+        pillsEl.innerHTML = ``;
+        w.placedWords.forEach(function(pw, idx) {
+          const pill = document.createElement(`span`);
+          pill.className = `ws-word-pill`;
+          const isFound = w.foundIndices.includes(idx);
+          if (isFound) pill.classList.add(`is-found`);
+
+          if (w.showSolution || isFound) {
+            const dot = document.createElement(`span`);
+            dot.className = `ws-color-dot`;
+            dot.style.backgroundColor = pw.color;
+            pill.appendChild(dot);
+          }
+          const txt = document.createElement(`span`);
+          txt.textContent = pw.word;
+          pill.appendChild(txt);
+          pillsEl.appendChild(pill);
+        });
+      }
+
+      if (progEl) {
+        progEl.textContent = `${w.foundIndices.length} / ${w.placedWords.length} gefunden`;
+      }
+    }
+
+    function onWsCellTap(r, c) {
+      const w = appState.wortsuche;
+      if (!w.selectStart) {
+        w.selectStart = { r: r, c: c };
+        renderWordSearchBoard();
+        return;
+      }
+
+      const r0 = w.selectStart.r;
+      const c0 = w.selectStart.c;
+      w.selectStart = null;
+
+      if (r0 === r && c0 === c) {
+        renderWordSearchBoard();
+        return;
+      }
+
+      const drRaw = r - r0;
+      const dcRaw = c - c0;
+      const steps = Math.max(Math.abs(drRaw), Math.abs(dcRaw));
+      if ((drRaw !== 0 && dcRaw !== 0 && Math.abs(drRaw) !== Math.abs(dcRaw)) || steps === 0) {
+        showFeedback(`Wähle Anfangs- und Endbuchstabe auf einer geraden horizontalen, vertikalen oder diagonalen Linie.`, `warning`);
+        renderWordSearchBoard();
+        return;
+      }
+
+      const dr = drRaw === 0 ? 0 : drRaw / Math.abs(drRaw);
+      const dc = dcRaw === 0 ? 0 : dcRaw / Math.abs(dcRaw);
+
+      let matchedIdx = -1;
+      for (let i = 0; i < w.placedWords.length; i++) {
+        const pw = w.placedWords[i];
+        const forwardMatch = (pw.r0 === r0 && pw.c0 === c0 && pw.r1 === r && pw.c1 === c);
+        const reverseMatch = (pw.r0 === r && pw.c0 === c && pw.r1 === r0 && pw.c1 === c0);
+        if (forwardMatch || reverseMatch) {
+          matchedIdx = i;
+          break;
+        }
+      }
+
+      if (matchedIdx !== -1) {
+        if (!w.foundIndices.includes(matchedIdx)) {
+          w.foundIndices.push(matchedIdx);
+          showFeedback(`Gefunden: „${w.placedWords[matchedIdx].word}“ (${w.foundIndices.length} von ${w.placedWords.length}).`, `success`);
+          scheduleSaveState();
+        }
+      } else {
+        let selectedStr = ``;
+        for (let k = 0; k <= steps; k++) {
+          selectedStr += w.grid[r0 + dr * k][c0 + dc * k];
+        }
+        showFeedback(`„${selectedStr}“ gehört nicht zur gesuchten Wortliste.`, `error`);
+      }
+      renderWordSearchBoard();
+    }
+
+    /* ============================================================
+       SHARED LIVE PLAY CONTROLS (Prüfen / Lösung / Zurücksetzen)
+       ============================================================ */
+    function checkCurrentPuzzle() {
+      if (appState.mode === `sudoku`) {
+        const s = appState.sudoku;
+        const N = s.size;
+        let filled = 0;
+        let correct = 0;
+        let wrong = 0;
+        let empty = 0;
+
+        for (let r = 0; r < N; r++) {
+          for (let c = 0; c < N; c++) {
+            if (s.puzzle[r][c] > 0) continue;
+            const val = s.userGrid[r][c];
+            if (val === 0) {
+              empty++;
+              s.checkedMap[r][c] = 0;
+            } else if (val === s.solution[r][c]) {
+              filled++;
+              correct++;
+              s.checkedMap[r][c] = 1;
+            } else {
+              filled++;
+              wrong++;
+              s.checkedMap[r][c] = -1;
+            }
+          }
+        }
+        s.showSolution = false;
+        renderSudokuBoard();
+        updatePlayHeader();
+
+        if (filled === 0) {
+          showFeedback(`Trage zuerst Zahlen in leere Felder ein, um deine Kombination zu prüfen.`, `warning`);
+        } else if (wrong === 0 && empty === 0) {
+          showFeedback(`Perfekt gelöst! Alle ${correct} Felder sind richtig.`, `success`);
+        } else if (wrong === 0) {
+          showFeedback(`Bis jetzt fehlerfrei: ${correct} Felder richtig, noch ${empty} offen.`, `success`);
+        } else {
+          showFeedback(`Ergebnis: ${correct} richtig, ${wrong} falsch (rot markiert), noch ${empty} offen.`, `error`);
+        }
+      } else {
+        const w = appState.wortsuche;
+        if (w.placedWords.length === 0) {
+          showFeedback(`Erstelle zuerst eine Wortsuche.`, `warning`);
+          return;
+        }
+        const rem = w.placedWords.length - w.foundIndices.length;
+        if (rem === 0) {
+          showFeedback(`Stark! Alle ${w.placedWords.length} Wörter wurden gefunden.`, `success`);
+        } else {
+          showFeedback(`Aktueller Stand: ${w.foundIndices.length} von ${w.placedWords.length} Wörtern gefunden, noch ${rem} offen.`, `warning`);
+        }
+      }
+    }
+
+    function toggleLiveSolution() {
+      if (appState.mode === `sudoku`) {
+        appState.sudoku.showSolution = !appState.sudoku.showSolution;
+        renderSudokuBoard();
+      } else {
+        if (appState.wortsuche.placedWords.length === 0) {
+          showFeedback(`Erstelle zuerst eine Wortsuche.`, `warning`);
+          return;
+        }
+        appState.wortsuche.showSolution = !appState.wortsuche.showSolution;
+        renderWordSearchBoard();
+      }
+      updatePlayHeader();
+    }
+
+    function resetLiveEntries() {
+      if (appState.mode === `sudoku`) {
+        const N = appState.sudoku.size;
+        appState.sudoku.userGrid = Array.from({ length: N }, function() { return new Array(N).fill(0); });
+        appState.sudoku.checkedMap = Array.from({ length: N }, function() { return new Array(N).fill(0); });
+        appState.sudoku.showSolution = false;
+        renderSudokuBoard();
+        hideFeedback();
+        updatePlayHeader();
+        scheduleSaveState();
+      } else {
+        appState.wortsuche.foundIndices = [];
+        appState.wortsuche.selectStart = null;
+        appState.wortsuche.showSolution = false;
+        renderWordSearchBoard();
+        hideFeedback();
+        updatePlayHeader();
+        scheduleSaveState();
+      }
+    }
+
+    /* ============================================================
+       WORKSHEET PREVIEW MODAL & AUTO-SCALING (BLATT 1 + BLATT 2)
+       ============================================================ */
+    function openPreviewModal() {
+      if (appState.mode === `wortsuche` && appState.wortsuche.placedWords.length === 0) {
+        showFeedback(`Bitte generiere zuerst eine Wortsuche, bevor du das Arbeitsblatt öffnest.`, `warning`);
+        return;
+      }
+
+      const nameInput = document.getElementById(`sheet-name-input`);
+      const dateInput = document.getElementById(`sheet-date-input`);
+      const marginSlider = document.getElementById(`sheet-margin-slider`);
+      const instrSlider = document.getElementById(`sheet-instr-slider`);
+      if (nameInput) nameInput.value = appState.sheet.name;
+      if (dateInput) dateInput.value = appState.sheet.date;
+      if (marginSlider) marginSlider.value = appState.sheet.marginMm;
+      if (instrSlider) instrSlider.value = appState.sheet.instrPt;
+
+      const marginVal = document.getElementById(`sheet-margin-val`);
+      const instrVal = document.getElementById(`sheet-instr-val`);
+      if (marginVal) marginVal.textContent = `${appState.sheet.marginMm} mm`;
+      if (instrVal) instrVal.textContent = `${appState.sheet.instrPt} pt`;
+
+      const strip = document.getElementById(`preview-settings-strip`);
+      if (strip) strip.classList.toggle(`is-open`, appState.sheet.settingsOpen);
+
+      const modal = document.getElementById(`preview-modal`);
+      if (modal) modal.classList.add(`is-open`);
+
+      renderWorksheetPages();
+      fitSheetsToViewport();
+    }
+
+    function closePreviewModal() {
+      const modal = document.getElementById(`preview-modal`);
+      if (modal) modal.classList.remove(`is-open`);
+    }
+
+    function togglePreviewSettings() {
+      appState.sheet.settingsOpen = !appState.sheet.settingsOpen;
+      const strip = document.getElementById(`preview-settings-strip`);
+      if (strip) strip.classList.toggle(`is-open`, appState.sheet.settingsOpen);
+    }
+
+    function onSheetMetaChange() {
+      appState.sheet.name = document.getElementById(`sheet-name-input`)?.value || ``;
+      appState.sheet.date = document.getElementById(`sheet-date-input`)?.value || ``;
+      renderWorksheetPages();
+      scheduleSaveState();
+    }
+
+    function onSheetMarginChange(val) {
+      appState.sheet.marginMm = Math.max(6, Math.min(24, parseInt(val, 10) || 14));
+      const lbl = document.getElementById(`sheet-margin-val`);
+      if (lbl) lbl.textContent = `${appState.sheet.marginMm} mm`;
+      renderWorksheetPages();
+      scheduleSaveState();
+    }
+
+    function onSheetInstrSizeChange(val) {
+      appState.sheet.instrPt = Math.max(8, Math.min(14, parseFloat(val) || 10));
+      const lbl = document.getElementById(`sheet-instr-val`);
+      if (lbl) lbl.textContent = `${appState.sheet.instrPt} pt`;
+      renderWorksheetPages();
+      scheduleSaveState();
+    }
+
+    function fitSheetsToViewport() {
+      const stage = document.getElementById(`preview-stage`);
+      if (!stage) return;
+      const availWidth = Math.max(260, stage.clientWidth - 24);
+      const scale = Math.min(1, availWidth / 794);
+      const scaledW = Math.floor(794 * scale);
+      const scaledH = Math.floor(1123 * scale);
+
+      [1, 2].forEach(function(num) {
+        const box = document.getElementById(`scale-box-${num}`);
+        const page = document.getElementById(`sheet-page-${num}`);
+        if (box && page) {
+          box.style.width = `${scaledW}px`;
+          box.style.height = `${scaledH}px`;
+          page.style.transform = `scale(${scale})`;
+        }
+      });
+    }
+
+    window.addEventListener(`resize`, function() {
+      if (document.getElementById(`preview-modal`)?.classList.contains(`is-open`)) {
+        fitSheetsToViewport();
+      }
+    });
+
+    function mmToPx96(mm) {
+      return Math.round(mm * (96 / 25.4));
+    }
+
+    function renderWorksheetPages() {
+      const p1 = document.getElementById(`sheet-page-1`);
+      const p2 = document.getElementById(`sheet-page-2`);
+      if (!p1 || !p2) return;
+
+      const marginPx = mmToPx96(appState.sheet.marginMm);
+      const instrPx = Math.round(appState.sheet.instrPt * 1.333);
+      const nameHtml = appState.sheet.name.trim()
+        ? `<span class="sheet-meta-value">${escapeHtml(appState.sheet.name.trim())}</span>`
+        : `<span class="sheet-meta-value">&nbsp;</span>`;
+      const dateHtml = appState.sheet.date.trim()
+        ? `<span class="sheet-meta-value">${escapeHtml(appState.sheet.date.trim())}</span>`
+        : `<span class="sheet-meta-value">&nbsp;</span>`;
+
+      if (appState.mode === `sudoku`) {
+        renderSudokuSheets(p1, p2, marginPx, instrPx, nameHtml, dateHtml);
+      } else {
+        renderWortsucheSheets(p1, p2, marginPx, instrPx, nameHtml, dateHtml);
+      }
+    }
+
+    function escapeHtml(str) {
+      return str
+        .replace(/&/g, `&amp;`)
+        .replace(/</g, `&lt;`)
+        .replace(/>/g, `&gt;`)
+        .replace(/"/g, `&quot;`);
+    }
+
+    function renderSudokuSheets(p1, p2, marginPx, instrPx, nameHtml, dateHtml) {
+      const s = appState.sudoku;
+      const N = s.size;
+      const boxDesc = s.subR > 1 ? `Unterblöcke: ${s.subR}×${s.subC}` : `Lateinisches Quadrat (ohne Unterblöcke)`;
+      const diffLabel = DIFF_LABELS[s.difficulty];
+
+      const instrItems = s.subR > 1
+        ? `<li>Fülle alle leeren Felder mit den Zahlen von <strong>1 bis ${N}</strong> aus, sodass jede Zahl in jeder <strong>Zeile</strong> genau einmal vorkommt.</li>
+           <li>Jede Zahl von <strong>1 bis ${N}</strong> darf in jeder <strong>Spalte</strong> genau einmal vorkommen.</li>
+           <li>Jeder fett umrandete <strong>${s.subR}×${s.subC}-Block</strong> muss alle Zahlen von <strong>1 bis ${N}</strong> genau einmal enthalten.</li>`
+        : `<li>Fülle alle leeren Felder mit den Zahlen von <strong>1 bis ${N}</strong> aus, sodass jede Zahl in jeder <strong>Zeile</strong> und jeder <strong>Spalte</strong> genau einmal vorkommt.</li>`;
+
+      const buildHeader = function(isSolution) {
+        return `
+          <div>
+            <div class="sheet-kicker">${isSolution ? `Lösungsblatt · Separates Extra-Blatt` : `Arbeitsblatt · Blatt 1`}</div>
+            <h3 class="sheet-title">${isSolution ? `Lösungsblatt: Sudoku-Übungsblatt` : `Sudoku-Übungsblatt`}</h3>
+            <div class="sheet-subtitle">Raster: ${N}×${N} · ${boxDesc} · Schwierigkeit: ${diffLabel}</div>
+            <div class="sheet-meta-row">
+              <div class="sheet-meta-field"><strong>Name:</strong> ${nameHtml}</div>
+              <div class="sheet-meta-field"><strong>Datum:</strong> ${dateHtml}</div>
+            </div>
+            <div class="sheet-instructions" style="font-size: ${instrPx}px;">
+              <h4>${isSolution ? `Hinweis zum Lösungsblatt` : `Anweisungen zur Lösung`}</h4>
+              ${isSolution
+                ? `<p style="margin:0;">Dunkel fett gedruckte Zahlen entsprechen den Ausgangsvorgaben auf Blatt 1; farbige bzw. feiner gedruckte Zahlen zeigen die vollständige Lösung.</p>`
+                : `<ol>${instrItems}</ol>`}
+            </div>
+          </div>`;
+      };
+
+      const footer1 = `<div class="sheet-footer"><span>Sudoku-Übungsblatt · ${N}×${N} (${diffLabel})</span><span>Blatt 1 von 2 · Arbeitsblatt</span></div>`;
+      const footer2 = `<div class="sheet-footer"><span>Lösungsblatt zu „Sudoku-Übungsblatt“</span><span>Blatt 2 von 2 · Separates Lösungsblatt</span></div>`;
+
+      p1.style.padding = `${marginPx}px`;
+      p2.style.padding = `${marginPx}px`;
+
+      p1.innerHTML = `<div class="sheet-inner">${buildHeader(false)}<div class="sheet-puzzle-area" id="sheet1-puzzle-slot"></div>${footer1}</div>`;
+      p2.innerHTML = `<div class="sheet-inner">${buildHeader(true)}<div class="sheet-puzzle-area" id="sheet2-puzzle-slot"></div>${footer2}</div>`;
+
+      // Auto-scale Sudoku grid to never clip at the bottom of Blatt 1 or Blatt 2
+      [false, true].forEach(function(isSol) {
+        const slot = document.getElementById(isSol ? `sheet2-puzzle-slot` : `sheet1-puzzle-slot`);
+        if (!slot) return;
+        const maxW = slot.clientWidth || (794 - 2 * marginPx);
+        const maxH = slot.clientHeight || (1123 - 2 * marginPx - 240);
+        const side = Math.max(180, Math.floor(Math.min(maxW, maxH) - 6));
+        const cellSize = Math.floor(side / N);
+        const fontSize = Math.max(5.5, Math.min(24, cellSize * (N >= 10 ? 0.50 : 0.56)));
+
+        const gridEl = document.createElement(`div`);
+        gridEl.className = `sudoku-print-grid`;
+        gridEl.style.gridTemplateColumns = `repeat(${N}, ${cellSize}px)`;
+        gridEl.style.gridTemplateRows = `repeat(${N}, ${cellSize}px)`;
+
+        const frag = document.createDocumentFragment();
+        for (let r = 0; r < N; r++) {
+          for (let c = 0; c < N; c++) {
+            const cell = document.createElement(`div`);
+            cell.className = `sudoku-print-cell`;
+            cell.style.width = `${cellSize}px`;
+            cell.style.height = `${cellSize}px`;
+            cell.style.fontSize = `${fontSize}px`;
+            if (c === N - 1) cell.classList.add(`no-r`);
+            else if (s.subC > 1 && (c + 1) % s.subC === 0) cell.classList.add(`thick-r`);
+            if (r === N - 1) cell.classList.add(`no-b`);
+            else if (s.subR > 1 && (r + 1) % s.subR === 0) cell.classList.add(`thick-b`);
+
+            const gRow = s.puzzle[r];
+            const solRow = s.solution[r];
+            const gVal = gRow ? gRow[c] : 0;
+            if (gVal > 0) {
+              cell.classList.add(`is-given`);
+              cell.textContent = String(gVal);
+            } else if (isSol && solRow) {
+              cell.classList.add(`is-sol`);
+              cell.textContent = String(solRow[c]);
+            }
+            frag.appendChild(cell);
+          }
+        }
+        gridEl.appendChild(frag);
+        slot.appendChild(gridEl);
+      });
+    }
+
+    function computeWsSheetMetrics(availW, availH, N, wordCount) {
+      // Adaptive column count & font size for up to 150 words so Blatt 1 never overflows
+      const cols = wordCount <= 12 ? 3 : (wordCount <= 36 ? 4 : (wordCount <= 80 ? 5 : 6));
+      const rows = Math.ceil(wordCount / cols);
+      const wordFontPx = wordCount <= 30 ? 11 : (wordCount <= 70 ? 9.5 : (wordCount <= 110 ? 8.2 : 7.2));
+      const rowHeight = Math.ceil(wordFontPx * 1.42) + 2;
+      const bankHeight = rows * rowHeight + 18;
+      const gridMaxH = Math.max(180, availH - bankHeight - 8);
+      const gridSide = Math.floor(Math.min(availW, gridMaxH) - 4);
+      const cellSize = Math.max(8, Math.floor(gridSide / N));
+      return { cols, wordFontPx, cellSize, gridSide: cellSize * N };
+    }
+
+    function renderWortsucheSheets(p1, p2, marginPx, instrPx, nameHtml, dateHtml) {
+      const w = appState.wortsuche;
+      const N = w.gridSize;
+      const wordCount = w.placedWords.length;
+
+      const buildHeader = function(isSolution) {
+        return `
+          <div>
+            <div class="sheet-kicker">${isSolution ? `Lösungsblatt · Separates Extra-Blatt` : `Arbeitsblatt · Blatt 1`}</div>
+            <h3 class="sheet-title">${isSolution ? `Lösungsblatt: Wortsuche` : `Wortsuche-Arbeitsblatt`}</h3>
+            <div class="sheet-subtitle">Raster: ${N}×${N} · ${wordCount} versteckte Wörter</div>
+            <div class="sheet-meta-row">
+              <div class="sheet-meta-field"><strong>Name:</strong> ${nameHtml}</div>
+              <div class="sheet-meta-field"><strong>Datum:</strong> ${dateHtml}</div>
+            </div>
+            <div class="sheet-instructions" style="font-size: ${instrPx}px;">
+              <h4>${isSolution ? `Hinweis zum Lösungsblatt` : `Anweisungen zur Lösung`}</h4>
+              ${isSolution
+                ? `<p style="margin:0;">Jedes gefundene Wort ist im Lösungsraster sowie in der Wortliste darunter mit einer eigenen, eindeutigen Farbe markiert.</p>`
+                : `<ol>
+                     <li>Finde alle unten aufgelisteten <strong>${wordCount} Wörter</strong> im Buchstabenraster.</li>
+                     <li>Die Wörter können waagerecht, senkrecht oder diagonal${w.dirs.backward ? ` (auch rückwärts)` : ``} versteckt sein.</li>
+                     <li>Umkreise oder markiere jedes gefundene Wort und hake es in der Liste ab.</li>
+                   </ol>`}
+            </div>
+          </div>`;
+      };
+
+      const footer1 = `<div class="sheet-footer"><span>Wortsuche-Arbeitsblatt · ${N}×${N} (${wordCount} Wörter)</span><span>Blatt 1 von 2 · Arbeitsblatt</span></div>`;
+      const footer2 = `<div class="sheet-footer"><span>Lösungsblatt zu „Wortsuche“</span><span>Blatt 2 von 2 · Separates Lösungsblatt</span></div>`;
+
+      p1.style.padding = `${marginPx}px`;
+      p2.style.padding = `${marginPx}px`;
+
+      p1.innerHTML = `<div class="sheet-inner">${buildHeader(false)}<div class="sheet-puzzle-area" id="sheet1-puzzle-slot"></div>${footer1}</div>`;
+      p2.innerHTML = `<div class="sheet-inner">${buildHeader(true)}<div class="sheet-puzzle-area" id="sheet2-puzzle-slot"></div>${footer2}</div>`;
+
+      [false, true].forEach(function(isSol) {
+        const slot = document.getElementById(isSol ? `sheet2-puzzle-slot` : `sheet1-puzzle-slot`);
+        if (!slot) return;
+
+        const availW = slot.clientWidth || (794 - 2 * marginPx);
+        const availH = slot.clientHeight || (1123 - 2 * marginPx - 230);
+        const metrics = computeWsSheetMetrics(availW, availH, N, wordCount);
+
+        const stage = document.createElement(`div`);
+        stage.className = `ws-print-stage`;
+
+        if (isSol) {
+          const svg = document.createElementNS(`http://www.w3.org/2000/svg`, `svg`);
+          svg.setAttribute(`class`, `ws-overlay-svg`);
+          svg.setAttribute(`viewBox`, `0 0 ${metrics.gridSide} ${metrics.gridSide}`);
+          w.placedWords.forEach(function(pw) {
+            const line = document.createElementNS(`http://www.w3.org/2000/svg`, `line`);
+            line.setAttribute(`x1`, (pw.c0 + 0.5) * metrics.cellSize);
+            line.setAttribute(`y1`, (pw.r0 + 0.5) * metrics.cellSize);
+            line.setAttribute(`x2`, (pw.c1 + 0.5) * metrics.cellSize);
+            line.setAttribute(`y2`, (pw.r1 + 0.5) * metrics.cellSize);
+            line.setAttribute(`stroke`, pw.color);
+            line.setAttribute(`stroke-width`, Math.max(6, Math.round(metrics.cellSize * 0.72)));
+            line.setAttribute(`stroke-linecap`, `round`);
+            line.setAttribute(`stroke-opacity`, `0.38`);
+            svg.appendChild(line);
+          });
+          stage.appendChild(svg);
+        }
+
+        const gridEl = document.createElement(`div`);
+        gridEl.className = `ws-print-grid`;
+        gridEl.style.position = `relative`;
+        gridEl.style.zIndex = `2`;
+        gridEl.style.background = `transparent`;
+        gridEl.style.gridTemplateColumns = `repeat(${N}, ${metrics.cellSize}px)`;
+        gridEl.style.gridTemplateRows = `repeat(${N}, ${metrics.cellSize}px)`;
+
+        const letterFontPx = Math.max(6, Math.floor(metrics.cellSize * 0.55));
+        const frag = document.createDocumentFragment();
+        if (w.grid && w.grid.length >= N) {
+          for (let r = 0; r < N; r++) {
+            const wRow = w.grid[r];
+            for (let c = 0; c < N; c++) {
+              const cell = document.createElement(`div`);
+              cell.className = `ws-print-cell`;
+              cell.style.width = `${metrics.cellSize}px`;
+              cell.style.height = `${metrics.cellSize}px`;
+              cell.style.fontSize = `${letterFontPx}px`;
+              if (c === N - 1) cell.style.borderRight = `0`;
+              if (r === N - 1) cell.style.borderBottom = `0`;
+              cell.textContent = wRow && typeof wRow[c] === `string` ? wRow[c] : ``;
+              frag.appendChild(cell);
+            }
+          }
+        }
+        gridEl.appendChild(frag);
+        stage.appendChild(gridEl);
+        slot.appendChild(stage);
+
+        // Word bank below grid
+        const bank = document.createElement(`div`);
+        bank.className = `ws-print-wordbank`;
+        bank.style.gridTemplateColumns = `repeat(${metrics.cols}, minmax(0, 1fr))`;
+        bank.style.fontSize = `${metrics.wordFontPx}px`;
+
+        w.placedWords.forEach(function(pw) {
+          const item = document.createElement(`div`);
+          item.className = `ws-print-worditem`;
+          if (isSol) {
+            const dot = document.createElement(`span`);
+            dot.style.width = `${Math.max(6, Math.round(metrics.wordFontPx * 0.75))}px`;
+            dot.style.height = `${Math.max(6, Math.round(metrics.wordFontPx * 0.75))}px`;
+            dot.style.borderRadius = `9999px`;
+            dot.style.backgroundColor = pw.color;
+            dot.style.flexShrink = `0`;
+            item.appendChild(dot);
+          } else {
+            const box = document.createElement(`span`);
+            box.textContent = `☐`;
+            box.style.opacity = `0.6`;
+            item.appendChild(box);
+          }
+          const wordSpan = document.createElement(`span`);
+          wordSpan.textContent = pw.word;
+          item.appendChild(wordSpan);
+          bank.appendChild(item);
+        });
+        slot.appendChild(bank);
+      });
+    }
+
+    /* ============================================================
+       HIGH-DPI CANVAS PNG EXPORT (iPHONE PHOTOS / FILES READY)
+       ============================================================ */
+    function printWorksheet() {
+      window.print();
+    }
+
+    function showPreviewToast(msg) {
+      const el = document.getElementById(`preview-export-toast`);
+      if (!el) return;
+      el.className = `status-banner is-success`;
+      el.textContent = msg;
+      el.classList.remove(`hidden`);
+      setTimeout(function() {
+        el.classList.add(`hidden`);
+      }, 4000);
+    }
+
+    function downloadSheetPng(pageNum) {
+      const isSolution = pageNum === 2;
+      const W = 1654; // A4 at 200 DPI
+      const H = 2339;
+      const scale = W / 794;
+
+      const canvas = document.createElement(`canvas`);
+      canvas.width = W;
+      canvas.height = H;
+      const ctx = canvas.getContext(`2d`);
+      if (!ctx) return;
+
+      const sheetStyles = getComputedStyle(document.documentElement);
+      const paperColor = sheetStyles.getPropertyValue(`--sheet-paper`).trim() || `white`;
+      const inkColor = sheetStyles.getPropertyValue(`--sheet-ink`).trim() || `black`;
+      const mutedColor = sheetStyles.getPropertyValue(`--sheet-muted`).trim() || `gray`;
+      const ruleColor = sheetStyles.getPropertyValue(`--sheet-rule`).trim() || `silver`;
+      const accentColor = sheetStyles.getPropertyValue(`--sheet-accent`).trim() || `navy`;
+
+      ctx.fillStyle = paperColor;
+      ctx.fillRect(0, 0, W, H);
+
+      const margin = Math.round(mmToPx96(appState.sheet.marginMm) * scale);
+      const contentW = W - 2 * margin;
+      let y = margin;
+
+      const fontHeadline = `'Outfit', sans-serif`;
+      const fontBody = `'Hanken Grotesk', sans-serif`;
+      const fontLabel = `'Outfit', sans-serif`;
+
+      // Kicker
+      ctx.fillStyle = accentColor;
+      ctx.font = `600 ${Math.round(10 * scale)}px ${fontLabel}`;
+      ctx.fillText(isSolution ? `LÖSUNGSBLATT · SEPARATES EXTRA-BLATT` : `ARBEITSBLATT · BLATT 1`, margin, y + Math.round(11 * scale));
+      y += Math.round(18 * scale);
+
+      // Title
+      ctx.fillStyle = inkColor;
+      ctx.font = `600 ${Math.round(22 * scale)}px ${fontHeadline}`;
+      const mainTitle = appState.mode === `sudoku`
+        ? (isSolution ? `Lösungsblatt: Sudoku-Übungsblatt` : `Sudoku-Übungsblatt`)
+        : (isSolution ? `Lösungsblatt: Wortsuche` : `Wortsuche-Arbeitsblatt`);
+      ctx.fillText(mainTitle, margin, y + Math.round(20 * scale));
+      y += Math.round(28 * scale);
+
+      // Subtitle
+      ctx.fillStyle = mutedColor;
+      ctx.font = `400 ${Math.round(12 * scale)}px ${fontBody}`;
+      let subText = ``;
+      if (appState.mode === `sudoku`) {
+        const s = appState.sudoku;
+        const boxDesc = s.subR > 1 ? `Unterblöcke: ${s.subR}×${s.subC}` : `Lateinisches Quadrat`;
+        subText = `Raster: ${s.size}×${s.size} · ${boxDesc} · Schwierigkeit: ${DIFF_LABELS[s.difficulty]}`;
+      } else {
+        subText = `Raster: ${appState.wortsuche.gridSize}×${appState.wortsuche.gridSize} · ${appState.wortsuche.placedWords.length} versteckte Wörter`;
+      }
+      ctx.fillText(subText, margin, y + Math.round(12 * scale));
+      y += Math.round(22 * scale);
+
+      // Name & Date row
+      ctx.strokeStyle = ruleColor;
+      ctx.lineWidth = Math.max(1, Math.round(1 * scale));
+      ctx.beginPath();
+      ctx.moveTo(margin, y);
+      ctx.lineTo(W - margin, y);
+      ctx.stroke();
+
+      const metaY = y + Math.round(19 * scale);
+      ctx.fillStyle = inkColor;
+      ctx.font = `600 ${Math.round(12 * scale)}px ${fontBody}`;
+      ctx.fillText(`Name:`, margin, metaY);
+      const nameVal = appState.sheet.name.trim();
+      if (nameVal) {
+        ctx.font = `500 ${Math.round(12 * scale)}px ${fontBody}`;
+        ctx.fillText(nameVal, margin + Math.round(46 * scale), metaY);
+      }
+      ctx.beginPath();
+      ctx.moveTo(margin + Math.round(44 * scale), metaY + Math.round(3 * scale));
+      ctx.lineTo(margin + Math.round(260 * scale), metaY + Math.round(3 * scale));
+      ctx.stroke();
+
+      const dateStartX = margin + Math.round(290 * scale);
+      ctx.font = `600 ${Math.round(12 * scale)}px ${fontBody}`;
+      ctx.fillText(`Datum:`, dateStartX, metaY);
+      const dateVal = appState.sheet.date.trim();
+      if (dateVal) {
+        ctx.font = `500 ${Math.round(12 * scale)}px ${fontBody}`;
+        ctx.fillText(dateVal, dateStartX + Math.round(52 * scale), metaY);
+      }
+      ctx.beginPath();
+      ctx.moveTo(dateStartX + Math.round(50 * scale), metaY + Math.round(3 * scale));
+      ctx.lineTo(dateStartX + Math.round(210 * scale), metaY + Math.round(3 * scale));
+      ctx.stroke();
+
+      y += Math.round(28 * scale);
+      ctx.beginPath();
+      ctx.moveTo(margin, y);
+      ctx.lineTo(W - margin, y);
+      ctx.stroke();
+      y += Math.round(16 * scale);
+
+      // Instructions block
+      const instrPx = Math.round(appState.sheet.instrPt * 1.333 * scale);
+      ctx.fillStyle = inkColor;
+      ctx.font = `600 ${Math.round(instrPx * 1.05)}px ${fontHeadline}`;
+      ctx.fillText(isSolution ? `Hinweis zum Lösungsblatt` : `Anweisungen zur Lösung`, margin, y + instrPx);
+      y += Math.round(instrPx * 1.45);
+
+      ctx.font = `400 ${instrPx}px ${fontBody}`;
+      const instrLines = [];
+      if (appState.mode === `sudoku`) {
+        const s = appState.sudoku;
+        if (isSolution) {
+          instrLines.push(`Dunkel fett gedruckte Zahlen entsprechen den Ausgangsvorgaben auf Blatt 1; farbige bzw. feinere Zahlen zeigen die vollständige Lösung.`);
+        } else {
+          instrLines.push(`1. Fülle alle leeren Felder mit den Zahlen von 1 bis ${s.size} so aus, dass jede Zahl in jeder Zeile genau einmal vorkommt.`);
+          instrLines.push(`2. Jede Zahl von 1 bis ${s.size} darf in jeder Spalte genau einmal vorkommen.`);
+          if (s.subR > 1) instrLines.push(`3. Jeder fett umrandete ${s.subR}×${s.subC}-Block muss alle Zahlen von 1 bis ${s.size} genau einmal enthalten.`);
+        }
+      } else {
+        if (isSolution) {
+          instrLines.push(`Jedes gefundene Wort ist im Lösungsraster sowie in der Wortliste darunter mit einer eigenen, eindeutigen Farbe markiert.`);
+        } else {
+          instrLines.push(`1. Finde alle unten aufgelisteten ${appState.wortsuche.placedWords.length} Wörter im Buchstabenraster.`);
+          instrLines.push(`2. Die Wörter verlaufen waagerecht, senkrecht oder diagonal${appState.wortsuche.dirs.backward ? ` (auch rückwärts)` : ``}.`);
+          instrLines.push(`3. Markiere jedes gefundene Wort und hake es in der Liste ab.`);
+        }
+      }
+
+      instrLines.forEach(function(line) {
+        y = drawWrappedText(ctx, line, margin, y + instrPx, contentW, Math.round(instrPx * 1.35)) - instrPx + Math.round(instrPx * 0.35);
+      });
+      y += Math.round(12 * scale);
+
+      // Footer reservation
+      const footerTopY = H - margin - Math.round(18 * scale);
+      const availH = footerTopY - y - Math.round(10 * scale);
+
+      if (appState.mode === `sudoku`) {
+        const s = appState.sudoku;
+        const N = s.size;
+        const side = Math.floor(Math.min(contentW, availH));
+        const cell = side / N;
+        const gridW = cell * N;
+        const gx = margin + (contentW - gridW) / 2;
+        const gy = y + (availH - gridW) / 2;
+
+        ctx.textAlign = `center`;
+        ctx.textBaseline = `middle`;
+        const fSize = Math.max(10, Math.min(48, cell * (N >= 10 ? 0.50 : 0.56)));
+
+        for (let r = 0; r < N; r++) {
+          const pRow = s.puzzle[r];
+          const solRow = s.solution[r];
+          for (let c = 0; c < N; c++) {
+            const cx = gx + c * cell;
+            const cy = gy + r * cell;
+            ctx.strokeStyle = ruleColor;
+            ctx.lineWidth = 1;
+            ctx.strokeRect(cx, cy, cell, cell);
+
+            const gVal = pRow ? pRow[c] : 0;
+            if (gVal > 0) {
+              ctx.fillStyle = inkColor;
+              ctx.font = `700 ${fSize}px ${fontLabel}`;
+              ctx.fillText(String(gVal), cx + cell / 2, cy + cell / 2);
+            } else if (isSolution && solRow) {
+              ctx.fillStyle = accentColor;
+              ctx.font = `400 ${fSize}px ${fontLabel}`;
+              ctx.fillText(String(solRow[c]), cx + cell / 2, cy + cell / 2);
+            }
+          }
+        }
+
+        // Subgrid thick lines
+        ctx.strokeStyle = inkColor;
+        ctx.lineWidth = Math.max(2, Math.round(1.8 * scale));
+        ctx.strokeRect(gx, gy, gridW, gridW);
+        if (s.subC > 1) {
+          for (let c = s.subC; c < N; c += s.subC) {
+            ctx.beginPath();
+            ctx.moveTo(gx + c * cell, gy);
+            ctx.lineTo(gx + c * cell, gy + gridW);
+            ctx.stroke();
+          }
+        }
+        if (s.subR > 1) {
+          for (let r = s.subR; r < N; r += s.subR) {
+            ctx.beginPath();
+            ctx.moveTo(gx, gy + r * cell);
+            ctx.lineTo(gx + gridW, gy + r * cell);
+            ctx.stroke();
+          }
+        }
+      } else {
+        const w = appState.wortsuche;
+        const N = w.gridSize;
+        const wordCount = w.placedWords.length;
+        const metrics = computeWsSheetMetrics(contentW / scale, availH / scale, N, wordCount);
+        const cell = metrics.cellSize * scale;
+        const gridW = cell * N;
+        const gx = margin + (contentW - gridW) / 2;
+        const gy = y;
+
+        // Colored solution paths behind letters on Blatt 2
+        if (isSolution) {
+          ctx.save();
+          ctx.lineCap = `round`;
+          ctx.lineWidth = Math.max(10, cell * 0.72);
+          ctx.globalAlpha = 0.34;
+          w.placedWords.forEach(function(pw) {
+            ctx.strokeStyle = pw.color;
+            ctx.beginPath();
+            ctx.moveTo(gx + (pw.c0 + 0.5) * cell, gy + (pw.r0 + 0.5) * cell);
+            ctx.lineTo(gx + (pw.c1 + 0.5) * cell, gy + (pw.r1 + 0.5) * cell);
+            ctx.stroke();
+          });
+          ctx.restore();
+        }
+
+        // Grid cells & letters
+        ctx.textAlign = `center`;
+        ctx.textBaseline = `middle`;
+        const letterFont = Math.max(11, Math.floor(cell * 0.55));
+        ctx.font = `500 ${letterFont}px ${fontLabel}`;
+
+        for (let r = 0; r < N; r++) {
+          const wRow = w.grid[r];
+          for (let c = 0; c < N; c++) {
+            const cx = gx + c * cell;
+            const cy = gy + r * cell;
+            ctx.strokeStyle = ruleColor;
+            ctx.lineWidth = 1;
+            ctx.strokeRect(cx, cy, cell, cell);
+            ctx.fillStyle = inkColor;
+            const ch = wRow && typeof wRow[c] === `string` ? wRow[c] : ``;
+            ctx.fillText(ch, cx + cell / 2, cy + cell / 2);
+          }
+        }
+        ctx.strokeStyle = inkColor;
+        ctx.lineWidth = Math.max(2, Math.round(1.5 * scale));
+        ctx.strokeRect(gx, gy, gridW, gridW);
+
+        // Word Bank below
+        const bankY = gy + gridW + Math.round(16 * scale);
+        ctx.strokeStyle = ruleColor;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(margin, bankY);
+        ctx.lineTo(W - margin, bankY);
+        ctx.stroke();
+
+        const cols = metrics.cols;
+        const colW = contentW / cols;
+        const wFont = Math.round(metrics.wordFontPx * scale);
+        const rowH = Math.ceil(wFont * 1.42) + Math.round(2 * scale);
+        ctx.font = `500 ${wFont}px ${fontLabel}`;
+        ctx.textAlign = `left`;
+        ctx.textBaseline = `middle`;
+
+        w.placedWords.forEach(function(pw, idx) {
+          const col = idx % cols;
+          const row = Math.floor(idx / cols);
+          const wx = margin + col * colW;
+          const wy = bankY + Math.round(14 * scale) + row * rowH;
+          if (wy + rowH / 2 > footerTopY) return;
+
+          if (isSolution) {
+            ctx.fillStyle = pw.color;
+            ctx.beginPath();
+            ctx.arc(wx + wFont * 0.4, wy, wFont * 0.38, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = inkColor;
+            ctx.fillText(pw.word, wx + wFont * 1.1, wy);
+          } else {
+            ctx.strokeStyle = mutedColor;
+            ctx.lineWidth = 1.2;
+            const bSize = wFont * 0.72;
+            ctx.strokeRect(wx, wy - bSize / 2, bSize, bSize);
+            ctx.fillStyle = inkColor;
+            ctx.fillText(pw.word, wx + bSize + wFont * 0.45, wy);
+          }
+        });
+      }
+
+      // Footer
+      ctx.textAlign = `left`;
+      ctx.textBaseline = `alphabetic`;
+      ctx.strokeStyle = ruleColor;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(margin, footerTopY);
+      ctx.lineTo(W - margin, footerTopY);
+      ctx.stroke();
+
+      ctx.fillStyle = mutedColor;
+      ctx.font = `400 ${Math.round(10 * scale)}px ${fontBody}`;
+      const fLeft = appState.mode === `sudoku`
+        ? (isSolution ? `Lösungsblatt zu „Sudoku-Übungsblatt“` : `Sudoku-Übungsblatt · ${appState.sudoku.size}×${appState.sudoku.size}`)
+        : (isSolution ? `Lösungsblatt zu „Wortsuche“` : `Wortsuche-Arbeitsblatt · ${appState.wortsuche.gridSize}×${appState.wortsuche.gridSize}`);
+      const fRight = isSolution ? `Blatt 2 von 2 · Separates Lösungsblatt` : `Blatt 1 von 2 · Arbeitsblatt`;
+      ctx.fillText(fLeft, margin, footerTopY + Math.round(14 * scale));
+      ctx.textAlign = `right`;
+      ctx.fillText(fRight, W - margin, footerTopY + Math.round(14 * scale));
+
+      // Export PNG
+      const dataUrl = typeof canvas.toDataURL === `function` ? canvas.toDataURL(`image/png`) : ``;
+      const filename = appState.mode === `sudoku`
+        ? `sudoku-${appState.sudoku.size}x${appState.sudoku.size}-blatt-${pageNum}.png`
+        : `wortsuche-${appState.wortsuche.gridSize}x${appState.wortsuche.gridSize}-blatt-${pageNum}.png`;
+
+      if (!dataUrl || typeof dataUrl !== `string`) {
+        showPreviewToast(`PNG-Export wird in dieser Vorschauumgebung über Drucken / PDF unterstützt.`);
+        return;
+      }
+
+      const base64Only = dataUrl.split(`,`)[1] || ``;
+      if (window.notebookAppApi && typeof window.notebookAppApi.triggerFileDownload === `function`) {
+        window.notebookAppApi.triggerFileDownload({
+          content: base64Only,
+          contentType: `image/png`,
+          encoding: `base64`,
+          filename: filename
+        });
+      } else {
+        const link = document.createElement(`a`);
+        link.href = dataUrl;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+      showPreviewToast(`Blatt ${pageNum} (${filename}) zum Speichern bereitgestellt.`);
+    }
+
+    function drawWrappedText(ctx, text, x, y, maxWidth, lineHeight) {
+      const words = text.split(` `);
+      let line = ``;
+      let currY = y;
+      for (let i = 0; i < words.length; i++) {
+        const testLine = line + words[i] + ` `;
+        if (ctx.measureText(testLine).width > maxWidth && i > 0) {
+          ctx.fillText(line.trim(), x, currY);
+          line = words[i] + ` `;
+          currY += lineHeight;
+        } else {
+          line = testLine;
+        }
+      }
+      ctx.fillText(line.trim(), x, currY);
+      return currY + lineHeight;
+    }
+
+    function refreshIcons() {
+      if (window.lucide && typeof window.lucide.createIcons === `function`) {
+        window.lucide.createIcons();
+      }
+    }
+
+    /* ============================================================
+       INITIALIZATION
+       ============================================================ */
+    async function initApp() {
+      await loadSavedState();
+      applyTheme();
+
+      // Restore Wortsuche inputs
+      const wsTextarea = document.getElementById(`ws-words-input`);
+      if (wsTextarea) wsTextarea.value = appState.wortsuche.rawText;
+      const wsAuto = document.getElementById(`ws-autosize-check`);
+      if (wsAuto) wsAuto.checked = appState.wortsuche.autoSize;
+      toggleWsAutoSize(appState.wortsuche.autoSize);
+      const wsSlider = document.getElementById(`ws-size-slider`);
+      const wsNumber = document.getElementById(`ws-size-number`);
+      const wsBadge = document.getElementById(`ws-size-badge`);
+      if (wsSlider) wsSlider.value = appState.wortsuche.gridSize;
+      if (wsNumber) wsNumber.value = appState.wortsuche.gridSize;
+      if (wsBadge) wsBadge.textContent = `${appState.wortsuche.gridSize} × ${appState.wortsuche.gridSize}`;
+
+      const dH = document.getElementById(`dir-horizontal`);
+      const dV = document.getElementById(`dir-vertical`);
+      const dD = document.getElementById(`dir-diagonal`);
+      const dB = document.getElementById(`dir-backward`);
+      if (dH) dH.checked = appState.wortsuche.dirs.horizontal;
+      if (dV) dV.checked = appState.wortsuche.dirs.vertical;
+      if (dD) dD.checked = appState.wortsuche.dirs.diagonal;
+      if (dB) dB.checked = appState.wortsuche.dirs.backward;
+      setUmlautMode(appState.wortsuche.umlautMode);
+
+      syncSudokuConfigUI();
+      if (!appState.sudoku.solution || appState.sudoku.solution.length !== appState.sudoku.size) {
+        generateSudokuNow();
+      } else {
+        appState.sudoku.checkedMap = Array.from({ length: appState.sudoku.size }, function() {
+          return new Array(appState.sudoku.size).fill(0);
+        });
+        renderSudokuBoard();
+        renderSudokuKeypad();
+      }
+
+      renderWordSearchBoard();
+      switchMode(appState.mode);
+      refreshIcons();
+
+      if (window.notebookAppApi && typeof window.notebookAppApi.notifyAppReady === `function`) {
+        window.notebookAppApi.notifyAppReady();
+      }
+    }
+
+    initApp();
+  </script>
+</body>
+</html>
